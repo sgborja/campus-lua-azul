@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Parisienne, Cormorant_Garamond, Poppins } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import DemoSwitcherBar from '@/components/DemoSwitcherBar';
@@ -47,6 +48,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
