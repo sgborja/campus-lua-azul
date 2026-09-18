@@ -9,9 +9,8 @@ export async function GET(req: NextRequest) {
   const targetId = userIdParam || cookieUserId;
   let user = targetId ? db.getUserById(targetId) : null;
 
-  // If no user found, default to student 1 (Valeria Gómez) for seamless initial experience
   if (!user) {
-    user = db.getUserById('usr_student1') || db.getUsers()[0];
+    user = db.getUserById('usr_sabrina') || db.getUsers()[0];
   }
 
   return NextResponse.json({ user });

@@ -62,7 +62,7 @@ export function renderBirthdayEmailHtml({
       </div>
 
       <p style="font-size: 14px; color: #475569;">¡Que disfrutes mucho de tu día rodeada/o de amor y buena energía!</p>
-      <p style="margin-top: 20px; font-weight: 600; color: #1e3583;">Con cariño,<br/>Sol Borja & Equipo Lua Azul</p>
+      <p style="margin-top: 20px; font-weight: 600; color: #1e3583;">Con cariño,<br/>Sabrina Borja & Equipo Lua Azul</p>
     </div>
     <div class="footer">
       <p style="margin: 0;">Lua Azul — Encuadernación, Agendas y Creaciones con Alma</p>

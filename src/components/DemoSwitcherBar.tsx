@@ -30,7 +30,7 @@ export default function DemoSwitcherBar() {
               ) : (
                 <>
                   <GraduationCap className="w-3.5 h-3.5 text-lua-400" />
-                  {user?.name || 'Valeria Gómez (Alumna)'}
+                  {user?.name || 'Alumno Lua Azul'}
                 </>
               )}
             </strong>

@@ -57,5 +57,13 @@ export async function GET() {
     recentOrders: orders.slice(-5).reverse(),
     upcomingBirthdays,
     students: studentsWithProgress,
+    allUsers: users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      avatar: u.avatar,
+      createdAt: u.createdAt,
+    })),
   });
 }

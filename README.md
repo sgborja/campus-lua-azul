@@ -45,7 +45,7 @@ Plataforma de formación online y Learning Management System (LMS) desarrollada 
 
 ### 3. Certificados Oficiales con Validez Digital
 - **Descarga e Impresión (`/campus/certificados/[id]`)**:
-  - Diseño apaisado A4 prémium con bordes dorados, tipografía de gala, logo oficial de Lua Azul y firma de Sol Borja.
+  - Diseño apaisado A4 prémium con bordes dorados, tipografía de gala, logo oficial de Lua Azul y firma de Sabrina Borja.
   - Código único alfanumérico (ej: `LUA-2026-T89K2`).
   - Optimizado para impresión directa y guardado en PDF de alta resolución (`Ctrl + P`).
 - **Validador Público (`/verificar/[codigo]`)**:

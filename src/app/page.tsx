@@ -277,7 +277,7 @@ export default function HomePage() {
           </blockquote>
 
           <div className="pt-2 flex items-center justify-between text-xs text-slate-500">
-            <span className="font-semibold text-azul-dark">Sol Borja · Creadora de Lua Azul</span>
+            <span className="font-semibold text-azul-dark">Sabrina Borja · Creadora de Lua Azul</span>
             <span className="font-serif italic text-dorado">Hacer las cosas con cuidado y que se note.</span>
           </div>
         </div>

@@ -145,7 +145,7 @@ export default function Navbar() {
                       >
                         <span className="flex items-center gap-2">
                           <GraduationCap className="w-3.5 h-3.5 text-verde" />
-                          Modo Alumno (Valeria)
+                          Modo Alumno
                         </span>
                         {role === 'STUDENT' && <span className="text-[10px] bg-verde text-white px-1.5 py-0.5 rounded">Activo</span>}
                       </button>

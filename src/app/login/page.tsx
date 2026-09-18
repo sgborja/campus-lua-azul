@@ -9,8 +9,8 @@ import { User, Lock, Mail, Shield, GraduationCap, ArrowRight } from 'lucide-reac
 export default function LoginPage() {
   const router = useRouter();
   const { login, switchRole } = useAuth();
-  const [email, setEmail] = useState('alumno@luaazul.com');
-  const [password, setPassword] = useState('alumno123');
+  const [email, setEmail] = useState('sgborja@gmail.com');
+  const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 

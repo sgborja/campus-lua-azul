@@ -135,7 +135,7 @@ export default function CertificateDetailPage() {
             {/* Signature */}
             <div className="space-y-1 text-center">
               <div className="font-firma text-2xl text-[#2E4C82] border-b border-slate-400 pb-1 max-w-[160px] mx-auto">
-                Sol Borja
+                Sabrina Borja
               </div>
               <p className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider font-sans">
                 Directora Docente
