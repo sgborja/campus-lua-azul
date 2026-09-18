@@ -128,48 +128,17 @@ export default function Navbar() {
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     </div>
 
-                    <div className="p-2 border-b border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1">
-                        Cambio rápido de rol
-                      </p>
-                      <button
-                        onClick={() => {
-                          switchRole('STUDENT');
-                          setUserDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-md text-left ${
-                          role === 'STUDENT'
-                            ? 'bg-verde/10 text-verde font-semibold'
-                            : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <GraduationCap className="w-3.5 h-3.5 text-verde" />
-                          Modo Alumno
-                        </span>
-                        {role === 'STUDENT' && <span className="text-[10px] bg-verde text-white px-1.5 py-0.5 rounded">Activo</span>}
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          switchRole('ADMIN');
-                          setUserDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-md text-left mt-1 ${
-                          role === 'ADMIN'
-                            ? 'bg-amber-50 text-dorado-dark font-semibold'
-                            : 'text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <Shield className="w-3.5 h-3.5 text-dorado" />
-                          Modo Administrador
-                        </span>
-                        {role === 'ADMIN' && <span className="text-[10px] bg-dorado text-white px-1.5 py-0.5 rounded">Activo</span>}
-                      </button>
-                    </div>
-
                     <div className="py-1">
+                      {role === 'ADMIN' && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-dorado-dark hover:bg-amber-50"
+                        >
+                          <Shield className="w-3.5 h-3.5 text-dorado" />
+                          Panel de Administración
+                        </Link>
+                      )}
                       <Link
                         href="/campus"
                         onClick={() => setUserDropdownOpen(false)}
@@ -259,33 +228,32 @@ export default function Navbar() {
             Panel de Gestión
           </Link>
 
-          <div className="pt-4 border-t border-slate-200">
-            <div className="text-xs font-semibold text-slate-500 mb-2">Conmutador rápido (Demo):</div>
-            <div className="grid grid-cols-2 gap-2">
+          {user ? (
+            <div className="pt-4 border-t border-slate-200 space-y-2">
+              <div className="text-xs font-semibold text-slate-500">Sesión: {user.name} ({role === 'ADMIN' ? 'Admin' : 'Alumno'})</div>
               <button
                 onClick={() => {
-                  switchRole('STUDENT');
+                  logout();
                   setMobileMenuOpen(false);
                 }}
-                className={`px-3 py-1.5 text-xs rounded font-medium ${
-                  role === 'STUDENT' ? 'bg-verde text-white' : 'bg-slate-100 text-slate-700'
-                }`}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-lg bg-red-50 text-red-600 font-medium"
               >
-                Modo Alumno
-              </button>
-              <button
-                onClick={() => {
-                  switchRole('ADMIN');
-                  setMobileMenuOpen(false);
-                }}
-                className={`px-3 py-1.5 text-xs rounded font-medium ${
-                  role === 'ADMIN' ? 'bg-dorado text-white' : 'bg-slate-100 text-slate-700'
-                }`}
-              >
-                Modo Admin
+                <LogOut className="w-4 h-4 text-red-500" />
+                Cerrar Sesión
               </button>
             </div>
-          </div>
+          ) : (
+            <div className="pt-4 border-t border-slate-200">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-azul text-white text-xs font-semibold"
+              >
+                <UserIcon className="w-4 h-4" />
+                Ingresar al Campus
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

@@ -3,7 +3,6 @@ import { Parisienne, Cormorant_Garamond, Poppins } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
-import DemoSwitcherBar from '@/components/DemoSwitcherBar';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -43,7 +42,6 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex flex-col font-sans antialiased text-slate-800 bg-[#fbfdfc] selection:bg-[#1E5C42] selection:text-white">
         <AuthProvider>
-          <DemoSwitcherBar />
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />

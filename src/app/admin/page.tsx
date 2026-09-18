@@ -46,68 +46,110 @@ export default function AdminOverviewPage() {
   return (
     <div className="space-y-8">
       
-      {/* 4 STAT CARDS */}
+      {/* 4 STAT CARDS (CLICKABLES) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
-        {/* Card 1: Students */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2">
+        {/* Card 1: Students -> /admin/alumnos */}
+        <Link
+          href="/admin/alumnos"
+          className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2 hover:border-lua-500 hover:shadow-md hover:-translate-y-0.5 transition-all group block cursor-pointer"
+          title="Ver alumnos registrados y permisos"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Alumnos Registrados
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-lua-600 transition-colors">
+              Alumnos y Permisos
             </span>
-            <div className="p-2 rounded-xl bg-lua-50 text-lua-600">
+            <div className="p-2 rounded-xl bg-lua-50 text-lua-600 group-hover:bg-lua-600 group-hover:text-white transition-colors">
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900">{m.totalStudents}</div>
-          <p className="text-[11px] text-slate-500">Estudiantes activos en la plataforma</p>
-        </div>
-
-        {/* Card 2: Courses */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Cursos Publicados
+          <div className="text-3xl font-extrabold text-slate-900 group-hover:text-lua-700 transition-colors">
+            {m.totalStudents}
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+            <span>Gestionar usuarios</span>
+            <span className="text-lua-600 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-0.5">
+              Ver lista <ArrowRight className="w-3 h-3" />
             </span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+          </div>
+        </Link>
+
+        {/* Card 2: Courses -> /admin/cursos */}
+        <Link
+          href="/admin/cursos"
+          className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2 hover:border-emerald-500 hover:shadow-md hover:-translate-y-0.5 transition-all group block cursor-pointer"
+          title="Ver y crear cursos"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
+              Cursos y Clases
+            </span>
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <BookOpen className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900">{m.totalCourses}</div>
-          <p className="text-[11px] text-slate-500">Con módulos de video y lecturas</p>
-        </div>
-
-        {/* Card 3: Certificates */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Certificados Emitidos
+          <div className="text-3xl font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors">
+            {m.totalCourses}
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+            <span>Crear o editar lecciones</span>
+            <span className="text-emerald-600 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-0.5">
+              Ir a Cursos <ArrowRight className="w-3 h-3" />
             </span>
-            <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+          </div>
+        </Link>
+
+        {/* Card 3: Certificates -> /admin/examenes */}
+        <Link
+          href="/admin/examenes"
+          className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2 hover:border-amber-500 hover:shadow-md hover:-translate-y-0.5 transition-all group block cursor-pointer"
+          title="Gestionar exámenes y requerimientos de certificación"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-amber-600 transition-colors">
+              Exámenes y Diplomas
+            </span>
+            <div className="p-2 rounded-xl bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">
               <Award className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900">{m.totalCertificates}</div>
-          <p className="text-[11px] text-slate-500">Con código único de validación</p>
-        </div>
+          <div className="text-3xl font-extrabold text-slate-900 group-hover:text-amber-700 transition-colors">
+            {m.totalCertificates}
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+            <span>Crear preguntas y notas</span>
+            <span className="text-amber-600 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-0.5">
+              Ir a Exámenes <ArrowRight className="w-3 h-3" />
+            </span>
+          </div>
+        </Link>
 
-        {/* Card 4: Revenue */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2">
+        {/* Card 4: Revenue -> /admin/pedidos */}
+        <Link
+          href="/admin/pedidos"
+          className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2 hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all group block cursor-pointer"
+          title="Ver ventas y órdenes de Mercado Pago"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
               Ventas Mercado Pago
             </span>
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+            <div className="p-2 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
               <CreditCard className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900">
+          <div className="text-3xl font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors">
             ${m.totalRevenue.toLocaleString('es-AR')}
           </div>
-          <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" /> Acreditación directa
-          </p>
-        </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+            <span className="text-emerald-600 font-semibold flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5" /> Directo
+            </span>
+            <span className="text-blue-600 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-0.5">
+              Ver Pedidos <ArrowRight className="w-3 h-3" />
+            </span>
+          </div>
+        </Link>
 
       </div>
 

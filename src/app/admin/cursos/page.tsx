@@ -17,34 +17,39 @@ import {
   Clock,
   Sparkles,
   Award,
+  Layers,
 } from 'lucide-react';
 
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
   // Form state
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
-  const [category, setCategory] = useState('Encuadernación');
+  const [category, setCategory] = useState('Terapia Floral');
   const [price, setPrice] = useState(15000);
   const [isFree, setIsFree] = useState(false);
   const [level, setLevel] = useState<'Principiante' | 'Intermedio' | 'Avanzado'>('Principiante');
-  const [durationHours, setDurationHours] = useState(5);
-  const [coverImage, setCoverImage] = useState('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800');
+  const [durationHours, setDurationHours] = useState(6);
+  const [coverImage, setCoverImage] = useState('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800');
   const [shortDescription, setShortDescription] = useState('');
   const [description, setDescription] = useState('');
 
-  // Sample lesson to include automatically
-  const [lessonTitle, setLessonTitle] = useState('1.1 Introducción práctica y materiales');
+  // Sample lesson to include
+  const [lessonTitle, setLessonTitle] = useState('1.1 Introducción práctica y fundamentos');
   const [lessonType, setLessonType] = useState<'VIDEO' | 'TEXT'>('VIDEO');
   const [lessonVideoUrl, setLessonVideoUrl] = useState('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
-  const [lessonContent, setLessonContent] = useState('Guía inicial de preparación de herramientas.');
+  const [lessonContent, setLessonContent] = useState('Guía inicial de preparación botánica y principios del método.');
 
-  // Sample resource to attach
+  // Resource to attach
   const [resourceTitle, setResourceTitle] = useState('Guía Oficial en PDF Lua Azul');
   const [resourceFileUrl, setResourceFileUrl] = useState('/docs/Guia-Medidas-A5-LuaAzul.pdf');
+
+  const [saving, setSaving] = useState(false);
 
   const fetchCourses = () => {
     setLoading(true);
@@ -63,102 +68,256 @@ export default function AdminCoursesPage() {
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
-    // auto slug
-    const generatedSlug = val
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    setSlug(generatedSlug);
+    if (!isEditing) {
+      const generatedSlug = val
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      setSlug(generatedSlug);
+    }
   };
 
-  const handleCreateCourse = async (e: React.FormEvent) => {
+  const handleOpenCreateModal = () => {
+    setIsEditing(false);
+    setEditingCourseId(null);
+    setTitle('');
+    setSlug('');
+    setCategory('Terapia Floral');
+    setPrice(15000);
+    setIsFree(false);
+    setLevel('Principiante');
+    setDurationHours(6);
+    setCoverImage('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800');
+    setShortDescription('');
+    setDescription('');
+    setLessonTitle('1.1 Introducción práctica y fundamentos');
+    setLessonType('VIDEO');
+    setLessonVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    setLessonContent('Guía inicial de preparación botánica y principios del método.');
+    setResourceTitle('Guía Oficial en PDF Lua Azul');
+    setResourceFileUrl('/docs/Guia-Medidas-A5-LuaAzul.pdf');
+    setShowModal(true);
+  };
+
+  const handleOpenEditModal = (course: Course) => {
+    setIsEditing(true);
+    setEditingCourseId(course.id);
+    setTitle(course.title);
+    setSlug(course.slug);
+    setCategory(course.category || 'Terapia Floral');
+    setPrice(course.price || 0);
+    setIsFree(Boolean(course.isFree));
+    setLevel((course.level as any) || 'Principiante');
+    setDurationHours(course.durationHours || 6);
+    setCoverImage(course.coverImage || '');
+    setShortDescription(course.shortDescription || '');
+    setDescription(course.description || '');
+
+    const firstMod = course.modules?.[0];
+    const firstLes = firstMod?.lessons?.[0];
+    setLessonTitle(firstLes?.title || '1.1 Introducción');
+    setLessonType(firstLes?.type || 'VIDEO');
+    setLessonVideoUrl(firstLes?.videoUrl || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    setLessonContent(firstLes?.content || '');
+
+    const firstRes = course.resources?.[0];
+    setResourceTitle(firstRes?.title || 'Guía Oficial en PDF Lua Azul');
+    setResourceFileUrl(firstRes?.fileUrl || '/docs/Guia-Medidas-A5-LuaAzul.pdf');
+
+    setShowModal(true);
+  };
+
+  const handleSaveCourse = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !slug) {
-      alert('Por favor completa el título');
+    if (!title.trim() || !slug.trim()) {
+      alert('Por favor completa el título y el enlace URL');
       return;
     }
 
-    const newCoursePayload: Partial<Course> = {
-      title,
-      slug,
-      category,
-      price: isFree ? 0 : Number(price),
-      isFree,
-      level,
-      durationHours: Number(durationHours),
-      coverImage,
-      shortDescription,
-      description,
-      published: true,
-      certificateEnabled: true,
-      modules: [
-        {
-          id: `mod_${Date.now()}`,
-          courseId: `course_${Date.now()}`,
-          title: 'Módulo 1: Inicio y Técnicas Fundamentales',
-          order: 1,
-          lessons: [
+    setSaving(true);
+    try {
+      if (isEditing && editingCourseId) {
+        // Find existing course to preserve modules/exam if any
+        const existing = courses.find((c) => c.id === editingCourseId);
+        const updatedModules = existing?.modules?.length
+          ? existing.modules.map((m, mIdx) => {
+              if (mIdx === 0 && m.lessons.length > 0) {
+                const updatedLessons = [...m.lessons];
+                updatedLessons[0] = {
+                  ...updatedLessons[0],
+                  title: lessonTitle,
+                  type: lessonType,
+                  videoUrl: lessonType === 'VIDEO' ? lessonVideoUrl : undefined,
+                  content: lessonContent,
+                };
+                return { ...m, lessons: updatedLessons };
+              }
+              return m;
+            })
+          : [
+              {
+                id: `mod_${Date.now()}`,
+                courseId: editingCourseId,
+                title: 'Módulo 1: Inicio y Técnicas Fundamentales',
+                order: 1,
+                lessons: [
+                  {
+                    id: `les_${Date.now()}`,
+                    moduleId: `mod_${Date.now()}`,
+                    courseId: editingCourseId,
+                    title: lessonTitle,
+                    type: lessonType,
+                    videoUrl: lessonType === 'VIDEO' ? lessonVideoUrl : undefined,
+                    durationMinutes: 15,
+                    order: 1,
+                    content: lessonContent,
+                  },
+                ],
+              },
+            ];
+
+        const payload: Partial<Course> = {
+          title,
+          slug,
+          category,
+          price: isFree ? 0 : Number(price),
+          isFree,
+          level,
+          durationHours: Number(durationHours),
+          coverImage,
+          shortDescription,
+          description,
+          modules: updatedModules,
+          resources: [
             {
-              id: `les_${Date.now()}`,
-              moduleId: `mod_${Date.now()}`,
-              courseId: `course_${Date.now()}`,
-              title: lessonTitle,
-              type: lessonType,
-              videoUrl: lessonType === 'VIDEO' ? lessonVideoUrl : undefined,
-              durationMinutes: 15,
-              order: 1,
-              content: lessonContent,
+              id: `res_${Date.now()}`,
+              courseId: editingCourseId,
+              title: resourceTitle,
+              description: 'Documentación oficial adjunta para descarga.',
+              fileUrl: resourceFileUrl,
+              fileType: 'PDF',
+              fileSize: '2.5 MB',
+              downloadCount: 0,
             },
           ],
-        },
-      ],
-      resources: [
-        {
-          id: `res_${Date.now()}`,
-          courseId: `course_${Date.now()}`,
-          title: resourceTitle,
-          description: 'Documentación oficial adjunta para descarga.',
-          fileUrl: resourceFileUrl,
-          fileType: 'PDF',
-          fileSize: '2.1 MB',
-          downloadCount: 0,
-        },
-      ],
-    };
+        };
 
-    try {
-      const res = await fetch('/api/courses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCoursePayload),
-      });
-      if (res.ok) {
-        setShowCreateModal(false);
-        // Reset
-        setTitle('');
-        setShortDescription('');
-        setDescription('');
-        fetchCourses();
+        const res = await fetch(`/api/courses/${editingCourseId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok) {
+          setShowModal(false);
+          fetchCourses();
+        } else {
+          alert('Error al actualizar el curso');
+        }
+      } else {
+        // Create new course
+        const newCoursePayload: Partial<Course> = {
+          title,
+          slug,
+          category,
+          price: isFree ? 0 : Number(price),
+          isFree,
+          level,
+          durationHours: Number(durationHours),
+          coverImage,
+          shortDescription,
+          description,
+          published: true,
+          certificateEnabled: true,
+          modules: [
+            {
+              id: `mod_${Date.now()}`,
+              courseId: `course_${Date.now()}`,
+              title: 'Módulo 1: Fundamentos y Primera Práctica',
+              order: 1,
+              lessons: [
+                {
+                  id: `les_${Date.now()}`,
+                  moduleId: `mod_${Date.now()}`,
+                  courseId: `course_${Date.now()}`,
+                  title: lessonTitle,
+                  type: lessonType,
+                  videoUrl: lessonType === 'VIDEO' ? lessonVideoUrl : undefined,
+                  durationMinutes: 20,
+                  order: 1,
+                  content: lessonContent,
+                },
+              ],
+            },
+          ],
+          resources: [
+            {
+              id: `res_${Date.now()}`,
+              courseId: `course_${Date.now()}`,
+              title: resourceTitle,
+              description: 'Documentación oficial adjunta para descarga.',
+              fileUrl: resourceFileUrl,
+              fileType: 'PDF',
+              fileSize: '2.5 MB',
+              downloadCount: 0,
+            },
+          ],
+        };
+
+        const res = await fetch('/api/courses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCoursePayload),
+        });
+
+        if (res.ok) {
+          setShowModal(false);
+          fetchCourses();
+        } else {
+          alert('Error al crear el curso');
+        }
       }
     } catch (e) {
       console.error(e);
-      alert('Error creando curso');
+      alert('Error guardando el curso');
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDeleteCourse = async (id: string) => {
-    if (!confirm('¿Estás segura/o de eliminar este curso del Campus?')) return;
+    if (!confirm('¿Estás segura de eliminar este curso del Campus?')) return;
 
     try {
       const res = await fetch(`/api/courses/${id}`, { method: 'DELETE' });
       if (res.ok) {
         fetchCourses();
+      } else {
+        alert('Error al eliminar curso');
       }
     } catch (e) {
       console.error(e);
-      alert('Error eliminando curso');
+      alert('Error de conexión');
+    }
+  };
+
+  const handleLoadModelCourse = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/courses/model', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        fetchCourses();
+      } else {
+        alert(data.error || 'Error cargando curso modelo');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error de conexión');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -172,56 +331,110 @@ export default function AdminCoursesPage() {
             Listado de Cursos y Contenidos
           </h2>
           <p className="text-xs text-slate-500">
-            Crea, edita y gestiona las lecciones en video o texto y sus documentos descargables.
+            Crea, edita y administra las lecciones en video o texto y sus documentos descargables.
           </p>
         </div>
 
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>+ Crear Nuevo Curso</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {courses.length === 0 && (
+            <button
+              onClick={handleLoadModelCourse}
+              className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs shadow-sm transition-all flex items-center gap-2"
+              title="Cargar un curso modelo completo con lecciones y examen"
+            >
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span>Cargar Curso Modelo (Flores de Bach)</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleOpenCreateModal}
+            className="px-4 py-2.5 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>+ Crear Nuevo Curso</span>
+          </button>
+        </div>
       </div>
 
       {/* Courses List Table/Cards */}
       {loading ? (
         <div className="py-20 text-center text-xs text-slate-500">Cargando cursos...</div>
+      ) : courses.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-12 text-center space-y-4 max-w-xl mx-auto shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-lua-50 text-lua-600 flex items-center justify-center mx-auto">
+            <BookOpen className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="font-serif font-bold text-lg text-slate-900">
+              Aún no tienes cursos publicados en el Campus
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Puedes crear tu primer curso desde cero o cargar nuestro curso modelo de Lua Azul para comenzar de inmediato.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button
+              onClick={handleLoadModelCourse}
+              className="px-5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs shadow-sm transition-all flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span>Cargar Curso Modelo Oficial</span>
+            </button>
+            <button
+              onClick={handleOpenCreateModal}
+              className="px-5 py-2.5 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold text-xs shadow transition-all flex items-center gap-2"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Crear Curso desde Cero</span>
+            </button>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => {
-            const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
+            const totalLessons = course.modules?.reduce((acc, m) => acc + (m.lessons?.length || 0), 0) || 0;
 
             return (
               <div
                 key={course.id}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between"
+                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
               >
                 <div>
-                  <div className="relative h-40 w-full bg-slate-100">
+                  <div className="relative h-44 w-full bg-slate-100">
                     <img
                       src={course.coverImage}
                       alt={course.title}
                       className="w-full h-full object-cover"
                     />
-                    <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                    <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded backdrop-blur-sm">
                       {course.category}
                     </span>
-                    <span className="absolute bottom-2 right-2 bg-white/95 text-slate-900 text-xs font-bold px-2 py-0.5 rounded shadow">
+                    <span className="absolute bottom-2 right-2 bg-white/95 text-slate-900 text-xs font-bold px-2.5 py-1 rounded shadow">
                       {course.isFree ? 'Gratis' : `$${course.price.toLocaleString('es-AR')} ARS`}
                     </span>
+                    {course.quiz && (
+                      <span className="absolute top-2 right-2 bg-amber-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">
+                        <Award className="w-3 h-3" /> Con Examen
+                      </span>
+                    )}
                   </div>
 
                   <div className="p-5 space-y-3">
-                    <h3 className="font-serif font-bold text-sm text-slate-900 line-clamp-2">
+                    <h3 className="font-serif font-bold text-base text-slate-900 line-clamp-2">
                       {course.title}
                     </h3>
 
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                    {course.shortDescription && (
+                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                        {course.shortDescription}
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 pt-2 border-t border-slate-100">
                       <span className="flex items-center gap-1">
                         <BookOpen className="w-3.5 h-3.5 text-lua-600" />
-                        {course.modules.length} módulos
+                        {course.modules?.length || 0} módulos
                       </span>
                       <span>•</span>
                       <span className="flex items-center gap-1">
@@ -231,33 +444,36 @@ export default function AdminCoursesPage() {
                       <span>•</span>
                       <span className="flex items-center gap-1">
                         <FileDown className="w-3.5 h-3.5 text-amber-600" />
-                        {course.resources.length} PDFs
+                        {course.resources?.length || 0} PDFs
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleOpenEditModal(course)}
+                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-lua-600 hover:border-lua-300 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                      title="Editar título, precio y clases"
+                    >
+                      <Edit className="w-3.5 h-3.5 text-lua-600" />
+                      <span>Editar</span>
+                    </button>
+
                     <Link
                       href={`/campus/curso/${course.slug}`}
-                      className="p-2 text-slate-600 hover:text-lua-600 rounded-lg hover:bg-white transition-colors"
-                      title="Abrir aula virtual"
+                      className="p-1.5 text-slate-500 hover:text-lua-600 rounded-lg hover:bg-white transition-colors"
+                      title="Abrir aula virtual del alumno"
+                      target="_blank"
                     >
                       <ExternalLink className="w-4 h-4" />
-                    </Link>
-                    <Link
-                      href={`/curso/${course.slug}`}
-                      className="p-2 text-slate-600 hover:text-lua-600 rounded-lg hover:bg-white transition-colors"
-                      title="Ver ficha pública"
-                    >
-                      <BookOpen className="w-4 h-4" />
                     </Link>
                   </div>
 
                   <button
                     onClick={() => handleDeleteCourse(course.id)}
-                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     title="Eliminar curso"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -269,8 +485,8 @@ export default function AdminCoursesPage() {
         </div>
       )}
 
-      {/* CREATE COURSE MODAL */}
-      {showCreateModal && (
+      {/* CREATE / EDIT COURSE MODAL */}
+      {showModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl my-8">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -280,20 +496,22 @@ export default function AdminCoursesPage() {
                 </div>
                 <div>
                   <h3 className="font-serif font-bold text-lg text-slate-900">
-                    Crear Nuevo Curso en Lua Azul
+                    {isEditing ? 'Editar Curso' : 'Crear Nuevo Curso en Lua Azul'}
                   </h3>
-                  <p className="text-xs text-slate-500">Publica contenido en video o texto con material adjunto</p>
+                  <p className="text-xs text-slate-500">
+                    Publica contenido en video o texto con material adjunto para tus alumnas
+                  </p>
                 </div>
               </div>
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => setShowModal(false)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateCourse} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveCourse} className="space-y-4 text-xs">
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Título del Curso *</label>
                 <input
@@ -301,14 +519,14 @@ export default function AdminCoursesPage() {
                   required
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
-                  placeholder="ej. Taller de Encuadernación con Costura Francesa"
+                  placeholder="ej. Taller de Flores de Bach y Acompañamiento Floral"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-lua-600 outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 block">Slug / Enlace URL</label>
+                  <label className="font-semibold text-slate-700 block">Slug / Enlace URL *</label>
                   <input
                     type="text"
                     required
@@ -325,9 +543,11 @@ export default function AdminCoursesPage() {
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white outline-none"
                   >
+                    <option value="Terapia Floral">Terapia Floral</option>
                     <option value="Encuadernación">Encuadernación</option>
+                    <option value="Reiki & Energía">Reiki & Energía</option>
+                    <option value="Runas Vikingas">Runas Vikingas</option>
                     <option value="Papelería y Agendas">Papelería y Agendas</option>
-                    <option value="Artesanías y 3D">Artesanías y 3D</option>
                     <option value="Emprendimiento">Emprendimiento</option>
                   </select>
                 </div>
@@ -341,7 +561,7 @@ export default function AdminCoursesPage() {
                     disabled={isFree}
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs outline-none disabled:opacity-50"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs outline-none disabled:opacity-50 font-bold"
                   />
                 </div>
 
@@ -370,12 +590,23 @@ export default function AdminCoursesPage() {
               </div>
 
               <div className="space-y-1">
+                <label className="font-semibold text-slate-700 block">Foto de Portada (URL)</label>
+                <input
+                  type="text"
+                  value={coverImage}
+                  onChange={(e) => setCoverImage(e.target.value)}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono"
+                />
+              </div>
+
+              <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Descripción Corta</label>
                 <input
                   type="text"
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
-                  placeholder="Resumen atractivo para la tarjeta del catálogo"
+                  placeholder="Resumen para la tarjeta de presentación"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
                 />
               </div>
@@ -386,7 +617,7 @@ export default function AdminCoursesPage() {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Detalles sobre qué aprenderán y técnicas..."
+                  placeholder="Detalles sobre los contenidos y técnicas del seminario..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
                 />
               </div>
@@ -394,7 +625,7 @@ export default function AdminCoursesPage() {
               {/* Lesson 1 info */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <span className="font-bold text-slate-800 uppercase tracking-wider text-[11px] block">
-                  Primera Lección del Curso:
+                  Lección Inicial del Curso:
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -474,16 +705,17 @@ export default function AdminCoursesPage() {
               <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => setShowModal(false)}
                   className="px-4 py-2 rounded-xl text-slate-500 hover:bg-slate-100 font-semibold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold shadow transition-all"
+                  disabled={saving}
+                  className="px-6 py-2.5 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold shadow transition-all disabled:opacity-50"
                 >
-                  Guardar y Publicar Curso
+                  {saving ? 'Guardando...' : isEditing ? 'Guardar Cambios' : 'Guardar y Publicar Curso'}
                 </button>
               </div>
             </form>
