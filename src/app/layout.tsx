@@ -28,6 +28,15 @@ export const metadata: Metadata = {
   title: 'Seminarios Lua Azul | Formación con Raíz Botánica y Profundidad Simbólica',
   description:
     'Cursos y seminarios de Flores de Bach, Reiki, Runas Vikingas y Flores de California. Formación pausada, seria y con calidez artesanal.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.png', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png' },
+    ],
+  },
 };
 
 export default function RootLayout({

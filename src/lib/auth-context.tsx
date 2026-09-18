@@ -68,7 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('lua_campus_user_id');
-    document.cookie = `campus_user_id=; path=/; max-age=0`;
+    document.cookie = 'campus_user_id=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    window.location.href = '/login';
   };
 
   const switchRole = async (newRole: UserRole) => {

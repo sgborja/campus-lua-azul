@@ -77,17 +77,19 @@ export default function Navbar() {
               Certificados
             </Link>
 
-            <Link
-              href="/admin"
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
-                isActive('/admin')
-                  ? 'bg-amber-50 text-dorado-dark font-bold border border-dorado/30'
-                  : 'text-slate-600 hover:text-dorado-dark hover:bg-amber-50/50'
-              }`}
-            >
-              <Shield className="w-4 h-4 text-dorado" />
-              Panel de Gestión
-            </Link>
+            {user && user.role === 'ADMIN' && (
+              <Link
+                href="/admin"
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  isActive('/admin')
+                    ? 'bg-amber-50 text-dorado-dark font-bold border border-dorado/30'
+                    : 'text-slate-600 hover:text-dorado-dark hover:bg-amber-50/50'
+                }`}
+              >
+                <Shield className="w-4 h-4 text-dorado" />
+                Panel de Gestión
+              </Link>
+            )}
           </nav>
 
           {/* Right Action: User Menu & Role Indicator */}
@@ -170,13 +172,21 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-azul hover:bg-azul-light text-white text-xs font-semibold shadow-sm transition-all"
-              >
-                <UserIcon className="w-3.5 h-3.5" />
-                Ingresar
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-slate-700 hover:text-azul hover:bg-slate-50 text-xs font-semibold transition-all"
+                >
+                  <UserIcon className="w-3.5 h-3.5 text-azul" />
+                  <span>Ingresar</span>
+                </Link>
+                <Link
+                  href="/registro"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-azul hover:bg-azul-light text-white text-xs font-semibold shadow-sm transition-all"
+                >
+                  <span>Registrarse</span>
+                </Link>
+              </div>
             )}
           </div>
 
@@ -219,14 +229,16 @@ export default function Navbar() {
             <Award className="w-4 h-4 text-dorado" />
             Mis Certificados
           </Link>
-          <Link
-            href="/admin"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-dorado-dark bg-amber-50"
-          >
-            <Shield className="w-4 h-4 text-dorado" />
-            Panel de Gestión
-          </Link>
+          {user && user.role === 'ADMIN' && (
+            <Link
+              href="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-dorado-dark bg-amber-50"
+            >
+              <Shield className="w-4 h-4 text-dorado" />
+              Panel de Gestión
+            </Link>
+          )}
 
           {user ? (
             <div className="pt-4 border-t border-slate-200 space-y-2">
@@ -243,14 +255,21 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <div className="pt-4 border-t border-slate-200">
+            <div className="pt-4 border-t border-slate-200 space-y-2">
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-azul text-white text-xs font-semibold"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-azul text-white text-xs font-semibold shadow-sm"
               >
                 <UserIcon className="w-4 h-4" />
                 Ingresar al Campus
+              </Link>
+              <Link
+                href="/registro"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50"
+              >
+                Crear Cuenta de Alumna
               </Link>
             </div>
           )}
