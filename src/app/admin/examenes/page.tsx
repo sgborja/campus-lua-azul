@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Course, Quiz, QuizQuestion } from '@/lib/types';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 import {
   Award,
   CheckCircle2,
@@ -443,7 +445,8 @@ export default function AdminExamsPage() {
 
                             {q.explanation && (
                               <p className="text-[11px] text-slate-500 italic pt-2 border-t border-slate-200">
-                                <strong>Explicación:</strong> {q.explanation}
+                                <strong>Explicación:</strong>{' '}
+                                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.explanation) }} />
                               </p>
                             )}
                           </div>
@@ -595,12 +598,11 @@ export default function AdminExamsPage() {
 
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Instrucción para el Alumno</label>
-                <input
-                  type="text"
+                <RichTextEditor
                   value={examDescription}
-                  onChange={(e) => setExamDescription(e.target.value)}
+                  onChange={setExamDescription}
+                  compact
                   placeholder="Mensaje de bienvenida al comenzar el cuestionario"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
                 />
               </div>
 
@@ -688,12 +690,11 @@ export default function AdminExamsPage() {
                         <label className="text-[10px] font-semibold text-slate-500 block mb-1">
                           Explicación Pedagógica (visible para el alumno tras enviar el examen):
                         </label>
-                        <input
-                          type="text"
+                        <RichTextEditor
                           value={q.explanation}
-                          onChange={(e) => handleExplanationChange(qIdx, e.target.value)}
+                          onChange={(html) => handleExplanationChange(qIdx, html)}
+                          compact
                           placeholder="ej. El método correcto es solarización porque capta la frecuencia sutil de la flor..."
-                          className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] bg-white text-slate-600"
                         />
                       </div>
                     </div>

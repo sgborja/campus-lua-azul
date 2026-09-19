@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { Course, Lesson, Resource, LessonProgress } from '@/lib/types';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import confetti from 'canvas-confetti';
 import {
   Video,
@@ -500,9 +501,10 @@ function CourseClassroomContent() {
               {/* TAB CONTENT: Content & Notes */}
               {activeTab === 'content' && (
                 <div className="bg-slate-950 p-6 sm:p-8 rounded-2xl border border-slate-800 space-y-4">
-                  <div className="prose prose-invert prose-sm max-w-none leading-relaxed text-slate-300 whitespace-pre-line">
-                    {activeLesson.content}
-                  </div>
+                  <div
+                    className="prose prose-invert prose-sm max-w-none leading-relaxed text-slate-300 whitespace-pre-line [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-lua-400 [&_a]:underline"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeLesson.content) }}
+                  />
                 </div>
               )}
 

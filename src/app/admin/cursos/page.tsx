@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Course, Module, Lesson, Resource } from '@/lib/types';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 import {
   BookOpen,
   PlusCircle,
@@ -782,12 +783,10 @@ export default function AdminCoursesPage() {
 
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Descripción Completa</label>
-                <textarea
-                  rows={3}
+                <RichTextEditor
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={setDescription}
                   placeholder="Detalles sobre los contenidos y técnicas del seminario..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
                 />
               </div>
 
@@ -855,12 +854,7 @@ export default function AdminCoursesPage() {
                 ) : (
                   <div>
                     <label className="font-medium text-slate-600 block mb-1">Contenido de la guía</label>
-                    <textarea
-                      rows={2}
-                      value={lessonContent}
-                      onChange={(e) => setLessonContent(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white"
-                    />
+                    <RichTextEditor value={lessonContent} onChange={setLessonContent} compact />
                   </div>
                 )}
               </div>

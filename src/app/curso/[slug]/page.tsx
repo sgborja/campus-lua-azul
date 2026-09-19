@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { Course } from '@/lib/types';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import {
   Video,
   FileText,
@@ -312,9 +313,10 @@ export default function CourseDetailPage() {
             <h2 className="text-2xl font-serif font-bold text-slate-900">
               Acerca de este curso
             </h2>
-            <div className="prose prose-slate text-sm text-slate-600 leading-relaxed whitespace-pre-line">
-              {course.description}
-            </div>
+            <div
+              className="prose prose-slate text-sm text-slate-600 leading-relaxed whitespace-pre-line [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-lua-600 [&_a]:underline"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(course.description) }}
+            />
           </div>
 
           {/* Temario / Módulos */}

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { Course, Quiz } from '@/lib/types';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import confetti from 'canvas-confetti';
 import {
   Award,
@@ -152,7 +153,10 @@ export default function ExamPage() {
           </div>
         </div>
 
-        <p className="text-xs text-slate-600 leading-relaxed">{quiz.description}</p>
+        <p
+          className="text-xs text-slate-600 leading-relaxed [&_a]:underline [&_a]:text-lua-600"
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(quiz.description) }}
+        />
 
         <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500 border-t border-slate-100">
           <span>Curso: <strong className="text-slate-800">{course.title}</strong></span>
@@ -303,7 +307,7 @@ export default function ExamPage() {
               {feedback && (
                 <div className="ml-10 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
                   <strong className="text-slate-800 block">Explicación técnica:</strong>
-                  <p>{feedback.explanation}</p>
+                  <p dangerouslySetInnerHTML={{ __html: sanitizeHtml(feedback.explanation) }} />
                 </div>
               )}
             </div>
