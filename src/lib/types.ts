@@ -18,7 +18,7 @@ export interface Resource {
   title: string;
   description?: string;
   fileUrl: string;
-  fileType: 'PDF' | 'ZIP' | 'IMAGE' | 'DOCUMENT' | 'TEMPLATE';
+  fileType: 'PDF' | 'ZIP' | 'PPT' | 'IMAGE' | 'DOCUMENT' | 'TEMPLATE';
   fileSize: string;
   downloadCount: number;
 }
@@ -143,6 +143,14 @@ export interface BirthdayTemplate {
   promoCode: string;
   discountPercent: number;
   validDays: number;
+}
+
+export interface SiteSettings {
+  footerDescription: string;
+  certificateTitle: string;
+  certificateStatement: string;
+  certificateSignerName: string;
+  certificateSignerTitle: string;
 }
 
 export interface BirthdayEmailLog {

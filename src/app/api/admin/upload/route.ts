@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { createAdminClient } from '@/lib/supabase';
 
-const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8MB, cubre imágenes y PPT/PPTX livianos
+const MAX_SIZE_BYTES = 40 * 1024 * 1024; // 40MB, cubre imágenes, PPT/PPTX, PDF y ZIP de material de curso
 const ALLOWED_TYPES = new Set([
   'image/png',
   'image/jpeg',
@@ -10,6 +10,9 @@ const ALLOWED_TYPES = new Set([
   'image/gif',
   'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/pdf',
+  'application/zip',
+  'application/x-zip-compressed',
 ]);
 
 export async function POST(req: NextRequest) {

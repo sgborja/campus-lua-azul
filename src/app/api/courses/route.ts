@@ -6,8 +6,9 @@ import { requireAdmin, requireSelfOrAdmin } from '@/lib/auth';
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const userId = url.searchParams.get('userId');
+  const wantsAdminView = url.searchParams.get('admin') === 'true';
 
-  const isAdmin = !!(await requireAdmin(req));
+  const isAdmin = wantsAdminView && !!(await requireAdmin(req));
   const allCourses = await db.getCourses();
   const courses = isAdmin ? allCourses : allCourses.filter((c) => c.published);
 

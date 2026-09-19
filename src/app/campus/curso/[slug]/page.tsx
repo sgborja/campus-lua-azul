@@ -40,6 +40,7 @@ function CourseClassroomContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [certificateUnlocked, setCertificateUnlocked] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   const slug = params.slug as string;
 
@@ -52,6 +53,7 @@ function CourseClassroomContent() {
         if (data.course) {
           setCourse(data.course);
           setProgressList(data.progress || []);
+          setIsEnrolled(Boolean(data.isEnrolled) || user.role !== 'STUDENT');
 
           // Find first uncompleted lesson or first lesson
           const allLessons: Lesson[] = [];
@@ -185,6 +187,23 @@ function CourseClassroomContent() {
         <h2 className="text-2xl font-bold text-slate-800">Curso no encontrado</h2>
         <Link href="/campus" className="inline-block px-4 py-2 bg-lua-600 text-white rounded-lg text-sm">
           Volver a Mi Campus
+        </Link>
+      </div>
+    );
+  }
+
+  if (!isEnrolled) {
+    return (
+      <div className="max-w-md mx-auto text-center py-24 space-y-4">
+        <h2 className="text-2xl font-bold text-slate-800">Todavía no estás inscripta en este curso</h2>
+        <p className="text-sm text-slate-500">
+          Inscribite para acceder a las clases, el material descargable y el certificado.
+        </p>
+        <Link
+          href={`/curso/${course.slug}`}
+          className="inline-block px-4 py-2 bg-lua-600 text-white rounded-lg text-sm font-semibold"
+        >
+          Ver curso e inscribirme
         </Link>
       </div>
     );

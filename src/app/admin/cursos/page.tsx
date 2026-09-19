@@ -77,6 +77,31 @@ export default function AdminCoursesPage() {
   // Resource to attach
   const [resourceTitle, setResourceTitle] = useState('Guía Oficial en PDF Lua Azul');
   const [resourceFileUrl, setResourceFileUrl] = useState('/docs/Guia-Medidas-A5-LuaAzul.pdf');
+  const [uploadingResource, setUploadingResource] = useState(false);
+
+  const handleResourceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingResource(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setResourceFileUrl(data.url);
+        if (!resourceTitle.trim()) setResourceTitle(file.name);
+      } else {
+        alert(data.error || 'Error al subir el archivo');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión al subir el archivo');
+    } finally {
+      setUploadingResource(false);
+      e.target.value = '';
+    }
+  };
 
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -107,7 +132,7 @@ export default function AdminCoursesPage() {
 
   const fetchCourses = () => {
     setLoading(true);
-    fetch('/api/courses')
+    fetch('/api/courses?admin=true')
       .then((res) => res.json())
       .then((data) => {
         if (data.courses) setCourses(data.courses);
@@ -189,6 +214,13 @@ export default function AdminCoursesPage() {
     setShowModal(true);
   };
 
+  const getResourceFileType = (url: string): 'PDF' | 'ZIP' | 'PPT' => {
+    const ext = url.split('.').pop()?.toLowerCase().split('?')[0] || '';
+    if (ext === 'zip') return 'ZIP';
+    if (ext === 'ppt' || ext === 'pptx') return 'PPT';
+    return 'PDF';
+  };
+
   const handleSaveCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !slug.trim()) {
@@ -261,7 +293,7 @@ export default function AdminCoursesPage() {
               title: resourceTitle,
               description: 'Documentación oficial adjunta para descarga.',
               fileUrl: resourceFileUrl,
-              fileType: 'PDF',
+              fileType: getResourceFileType(resourceFileUrl),
               fileSize: '2.5 MB',
               downloadCount: 0,
             },
@@ -325,7 +357,7 @@ export default function AdminCoursesPage() {
               title: resourceTitle,
               description: 'Documentación oficial adjunta para descarga.',
               fileUrl: resourceFileUrl,
-              fileType: 'PDF',
+              fileType: getResourceFileType(resourceFileUrl),
               fileSize: '2.5 MB',
               downloadCount: 0,
             },
@@ -633,18 +665,22 @@ export default function AdminCoursesPage() {
 
                 <div className="space-y-1">
                   <label className="font-semibold text-slate-700 block">Categoría</label>
-                  <select
+                  <input
+                    type="text"
+                    list="category-suggestions"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
+                    placeholder="ej. Terapia Floral"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white outline-none"
-                  >
-                    <option value="Terapia Floral">Terapia Floral</option>
-                    <option value="Encuadernación">Encuadernación</option>
-                    <option value="Reiki & Energía">Reiki & Energía</option>
-                    <option value="Runas Vikingas">Runas Vikingas</option>
-                    <option value="Papelería y Agendas">Papelería y Agendas</option>
-                    <option value="Emprendimiento">Emprendimiento</option>
-                  </select>
+                  />
+                  <datalist id="category-suggestions">
+                    <option value="Terapia Floral" />
+                    <option value="Encuadernación" />
+                    <option value="Reiki & Energía" />
+                    <option value="Runas Vikingas" />
+                    <option value="Papelería y Agendas" />
+                    <option value="Emprendimiento" />
+                  </datalist>
                 </div>
               </div>
 
@@ -844,16 +880,29 @@ export default function AdminCoursesPage() {
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white"
                     />
                   </div>
-                  <div>
-                    <label className="font-medium text-slate-600 block mb-1">Ruta o archivo PDF</label>
+                  <div className="space-y-2">
+                    <label className="font-medium text-slate-600 block mb-1">Ruta o archivo (PDF, PPT o ZIP)</label>
                     <input
                       type="text"
                       value={resourceFileUrl}
                       onChange={(e) => setResourceFileUrl(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white font-mono"
                     />
+                    <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-lua-600 hover:text-lua-700 cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.ppt,.pptx,.zip,application/pdf,application/zip,application/x-zip-compressed,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        className="hidden"
+                        disabled={uploadingResource}
+                        onChange={handleResourceUpload}
+                      />
+                      <span>{uploadingResource ? 'Subiendo...' : '📁 Subir archivo desde mi computadora'}</span>
+                    </label>
                   </div>
                 </div>
+                <p className="text-[10px] text-slate-400">
+                  Este material queda disponible para descarga solo para alumnas inscriptas en el curso.
+                </p>
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">

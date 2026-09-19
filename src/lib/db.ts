@@ -13,6 +13,7 @@ import {
   BirthdayEmailLog,
   QuizAttempt,
   Quiz,
+  SiteSettings,
 } from './types';
 
 const sb = createAdminClient();
@@ -560,6 +561,41 @@ export const db = {
     const { data, error } = await sb.from('birthday_logs').insert(row).select().single();
     if (error) throw error;
     return rowToBirthdayLog(data);
+  },
+
+  // SITE SETTINGS (pie de página, plantilla de certificados)
+  getSiteSettings: async (): Promise<SiteSettings> => {
+    const { data, error } = await sb.from('site_settings').select('*').eq('id', true).single();
+    if (error) throw error;
+    return {
+      footerDescription: data.footer_description,
+      certificateTitle: data.certificate_title,
+      certificateStatement: data.certificate_statement,
+      certificateSignerName: data.certificate_signer_name,
+      certificateSignerTitle: data.certificate_signer_title,
+    };
+  },
+  saveSiteSettings: async (settings: SiteSettings): Promise<SiteSettings> => {
+    const { data, error } = await sb
+      .from('site_settings')
+      .update({
+        footer_description: settings.footerDescription,
+        certificate_title: settings.certificateTitle,
+        certificate_statement: settings.certificateStatement,
+        certificate_signer_name: settings.certificateSignerName,
+        certificate_signer_title: settings.certificateSignerTitle,
+      })
+      .eq('id', true)
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      footerDescription: data.footer_description,
+      certificateTitle: data.certificate_title,
+      certificateStatement: data.certificate_statement,
+      certificateSignerName: data.certificate_signer_name,
+      certificateSignerTitle: data.certificate_signer_title,
+    };
   },
 };
 

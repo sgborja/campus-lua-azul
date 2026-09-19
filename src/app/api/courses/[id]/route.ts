@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin, requireSelfOrAdmin } from '@/lib/auth';
+import { Course } from '@/lib/types';
+import { requireAdmin, requireSelfOrAdmin, getSessionUser } from '@/lib/auth';
+
+function stripPaidContent(course: Course): Course {
+  return {
+    ...course,
+    modules: course.modules?.map((m) => ({
+      ...m,
+      lessons: m.lessons?.map((l) => ({
+        ...l,
+        videoUrl: undefined,
+        pptUrl: undefined,
+        content: '',
+      })),
+    })),
+    resources: [],
+    quiz: undefined,
+  };
+}
 
 export async function GET(
   req: NextRequest,
@@ -29,8 +47,12 @@ export async function GET(
     const certificate = await db.getCertificateForCourse(userId, course.id);
     const quizAttempts = course.quiz ? await db.getQuizAttempts(userId, course.quiz.id) : [];
 
+    const requester = await getSessionUser(req);
+    const isStaff = !!requester && requester.role !== 'STUDENT';
+    const responseCourse = isEnrolled || isStaff ? course : stripPaidContent(course);
+
     return NextResponse.json({
-      course,
+      course: responseCourse,
       isEnrolled,
       progress,
       progressPercent,

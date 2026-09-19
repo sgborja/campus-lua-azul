@@ -10,16 +10,22 @@ export default function CertificateDetailPage() {
   const params = useParams();
   const code = params.id as string;
   const [certData, setCertData] = useState<any | null>(null);
+  const [settings, setSettings] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!code) return;
 
-    fetch(`/api/certificates/${code}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.valid && data.certificate) {
-          setCertData(data.certificate);
+    Promise.all([
+      fetch(`/api/certificates/${code}`).then((res) => res.json()),
+      fetch('/api/admin/settings').then((res) => res.json()),
+    ])
+      .then(([certRes, settingsRes]) => {
+        if (certRes.valid && certRes.certificate) {
+          setCertData(certRes.certificate);
+        }
+        if (settingsRes.settings) {
+          setSettings(settingsRes.settings);
         }
       })
       .catch((err) => console.error(err))
@@ -106,7 +112,7 @@ export default function CertificateDetailPage() {
               Otorga el presente
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#2E4C82] tracking-wide">
-              CERTIFICADO DE FORMACIÓN
+              {settings?.certificateTitle || 'CERTIFICADO DE FORMACIÓN'}
             </h2>
           </div>
 
@@ -120,7 +126,8 @@ export default function CertificateDetailPage() {
 
           {/* Statement */}
           <p className="text-xs sm:text-sm text-slate-700 max-w-2xl mx-auto leading-relaxed font-sans">
-            Por haber completado con dedicación el programa formativo, el estudio botánico-simbólico y la evaluación correspondiente al curso:
+            {settings?.certificateStatement ||
+              'Por haber completado con dedicación el programa formativo, el estudio botánico-simbólico y la evaluación correspondiente al curso:'}
           </p>
 
           <div className="bg-[#f2f7f4] py-3.5 px-6 rounded-xl border border-[#BEE0D0] inline-block max-w-xl">
@@ -135,10 +142,10 @@ export default function CertificateDetailPage() {
             {/* Signature */}
             <div className="space-y-1 text-center">
               <div className="font-firma text-2xl text-[#2E4C82] border-b border-slate-400 pb-1 max-w-[160px] mx-auto">
-                Sabrina Borja
+                {settings?.certificateSignerName || 'Sabrina Borja'}
               </div>
               <p className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider font-sans">
-                Directora Docente
+                {settings?.certificateSignerTitle || 'Directora Docente'}
               </p>
               <p className="text-[10px] text-slate-500 font-sans">Seminarios Lua Azul</p>
             </div>

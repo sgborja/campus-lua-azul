@@ -1,0 +1,148 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { Settings, CheckCircle2, FileText, Award } from 'lucide-react';
+
+export default function AdminSettingsPage() {
+  const [settings, setSettings] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then((res) => res.json())
+      .then((data) => setSettings(data.settings))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleChange = (field: string, value: string) => {
+    setSettings((prev: any) => ({ ...prev, [field]: value }));
+    setSaved(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      if (res.ok) {
+        setSaved(true);
+      } else {
+        alert('Error al guardar los ajustes');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error de conexión');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading || !settings) {
+    return <div className="py-20 text-center text-xs text-slate-500">Cargando ajustes...</div>;
+  }
+
+  return (
+    <div className="space-y-8 max-w-3xl">
+      <div>
+        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+          <Settings className="w-4 h-4" />
+          Configuración General
+        </span>
+        <h2 className="text-xl font-serif font-bold text-slate-900 mt-0.5">Ajustes del Sitio</h2>
+        <p className="text-xs text-slate-500">
+          Editá el texto del pie de página y la plantilla de los certificados oficiales.
+        </p>
+      </div>
+
+      {/* Footer */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h3 className="font-serif font-bold text-base text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <FileText className="w-5 h-5 text-lua-600" />
+          Pie de Página (Footer)
+        </h3>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">Descripción de la marca</label>
+          <textarea
+            rows={3}
+            value={settings.footerDescription}
+            onChange={(e) => handleChange('footerDescription', e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Certificate template */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h3 className="font-serif font-bold text-base text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Award className="w-5 h-5 text-amber-600" />
+          Plantilla de Certificados
+        </h3>
+        <p className="text-[11px] text-slate-400">
+          El nombre de la alumna y el curso se completan automáticamente. Acá solo editás el texto fijo del diploma.
+        </p>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">Título del certificado</label>
+          <input
+            type="text"
+            value={settings.certificateTitle}
+            onChange={(e) => handleChange('certificateTitle', e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">Texto de la declaración</label>
+          <textarea
+            rows={3}
+            value={settings.certificateStatement}
+            onChange={(e) => handleChange('certificateStatement', e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-700 block">Nombre de quien firma</label>
+            <input
+              type="text"
+              value={settings.certificateSignerName}
+              onChange={(e) => handleChange('certificateSignerName', e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-700 block">Cargo de quien firma</label>
+            <input
+              type="text"
+              value={settings.certificateSignerTitle}
+              onChange={(e) => handleChange('certificateSignerTitle', e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+            />
+          </div>
+        </div>
+      </div>
+
+      {saved && (
+        <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 flex items-center gap-1.5 w-fit">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Ajustes guardados correctamente.
+        </p>
+      )}
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="px-6 py-2.5 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold text-xs shadow transition-all disabled:opacity-50"
+      >
+        {saving ? 'Guardando...' : 'Guardar Ajustes'}
+      </button>
+    </div>
+  );
+}

@@ -63,7 +63,7 @@ const config: Config = {
       fontFamily: {
         firma: ['var(--font-firma)', 'cursive'],
         serif: ['var(--font-cormorant)', 'Georgia', 'serif'],
-        sans: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
+        sans: ['Georgia', 'Cambria', '"Times New Roman"', 'serif'],
       },
     },
   },

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Parisienne, Cormorant_Garamond, Poppins } from 'next/font/google';
+import { Parisienne, Cormorant_Garamond } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
@@ -17,12 +17,6 @@ const cormorant = Cormorant_Garamond({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-cormorant',
-});
-
-const poppins = Poppins({
-  weight: ['300', '400', '500', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-poppins',
 });
 
 export const metadata: Metadata = {
@@ -48,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${parisienne.variable} ${cormorant.variable} ${poppins.variable}`}
+      className={`${parisienne.variable} ${cormorant.variable}`}
     >
       <body className="min-h-screen flex flex-col font-sans antialiased text-slate-800 bg-[#fbfdfc] selection:bg-[#1E5C42] selection:text-white">
         <AuthProvider>

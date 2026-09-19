@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   PlusCircle,
   ChevronRight,
+  Settings,
 } from 'lucide-react';
 
 const ADMIN_ROLES = ['ADMIN', 'PROFESOR', 'EDITOR'];
@@ -44,6 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Alumnos y Progreso', href: '/admin/alumnos', icon: Users },
     { label: 'Mails de Cumpleaños', href: '/admin/cumpleanos', icon: Cake },
     { label: 'Pedidos Mercado Pago', href: '/admin/pedidos', icon: CreditCard },
+    { label: 'Ajustes del Sitio', href: '/admin/ajustes', icon: Settings },
   ];
 
   const isActive = (href: string) => {

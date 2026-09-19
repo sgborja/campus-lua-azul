@@ -2,8 +2,17 @@ import React from 'react';
 import Link from 'next/link';
 import LuaAzulLogo, { StarIcon } from './LuaAzulLogo';
 import { Mail } from 'lucide-react';
+import { db } from '@/lib/db';
 
-export default function Footer() {
+const FALLBACK_DESCRIPTION =
+  'Formación con raíz botánica y profundidad simbólica, para leerte a vos y acompañar a otros. Cursos en Flores de Bach, Reiki, Runas Vikingas y Flores de California.';
+
+export default async function Footer() {
+  const footerDescription = await db
+    .getSiteSettings()
+    .then((s) => s.footerDescription)
+    .catch(() => FALLBACK_DESCRIPTION);
+
   return (
     <footer className="bg-azul-950 text-celeste border-t border-azul/40 mt-20 no-print">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -14,7 +23,7 @@ export default function Footer() {
             <LuaAzulLogo color="#ffffff" subtitle="Seminarios" />
             
             <p className="text-xs sm:text-sm text-celeste/80 max-w-md leading-relaxed font-light">
-              Formación con raíz botánica y profundidad simbólica, para leerte a vos y acompañar a otros. Cursos en Flores de Bach, Reiki, Runas Vikingas y Flores de California.
+              {footerDescription}
             </p>
 
             <div className="flex items-center gap-2 text-xs text-dorado font-serif italic">
