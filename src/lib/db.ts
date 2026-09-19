@@ -624,6 +624,9 @@ export const db = {
       heroSubtitle:
         data.hero_subtitle ??
         'Un camino de estudio serio en terapias florales, energéticas y rúnicas. Para leerte a vos y acompañar a otros, con el tiempo y el cuidado que cada proceso merece.',
+      heroBadges:
+        data.hero_badges ??
+        'Clases en Video y Guías, Vademécums en PDF, Certificado Verificable, Abono con Mercado Pago',
     };
   },
   saveSiteSettings: async (settings: SiteSettings): Promise<SiteSettings> => {
@@ -641,6 +644,7 @@ export const db = {
         hero_title_main: settings.heroTitleMain,
         hero_title_accent: settings.heroTitleAccent,
         hero_subtitle: settings.heroSubtitle,
+        hero_badges: settings.heroBadges,
       })
       .eq('id', true)
       .select()
@@ -658,6 +662,7 @@ export const db = {
       heroTitleMain: data.hero_title_main,
       heroTitleAccent: data.hero_title_accent,
       heroSubtitle: data.hero_subtitle,
+      heroBadges: data.hero_badges,
     };
   },
 

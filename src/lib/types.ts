@@ -181,6 +181,7 @@ export interface SiteSettings {
   heroTitleMain: string;
   heroTitleAccent: string;
   heroSubtitle: string;
+  heroBadges: string; // separados por coma, ej. "Clases en Video y Guías, Vademécums en PDF"
 }
 
 export interface BirthdayEmailLog {

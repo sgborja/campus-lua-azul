@@ -54,12 +54,13 @@ export default function HomePage() {
       .catch((err) => console.error(err));
   }, []);
 
-  const categories = ['Todos', 'Terapia Floral', 'Formación Energética', 'Simbología y Runas'];
+  // Las categorías salen de los cursos reales (categoría es texto libre en el
+  // admin), en vez de una lista fija que se desincroniza apenas se agrega o
+  // renombra un curso.
+  const categories = ['Todos', ...Array.from(new Set(courses.map((c) => c.category))).sort()];
 
   const filteredCourses =
-    selectedCategory === 'Todos'
-      ? courses
-      : courses.filter((c) => c.category.toLowerCase().includes(selectedCategory.toLowerCase()));
+    selectedCategory === 'Todos' ? courses : courses.filter((c) => c.category === selectedCategory);
 
   return (
     <div className="space-y-16 pb-20">
@@ -109,22 +110,19 @@ export default function HomePage() {
 
           {/* Badges de Valor */}
           <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto border-t border-azul/50 text-xs text-celeste/80">
-            <div className="flex items-center justify-center sm:justify-start gap-2">
-              <StarIcon className="w-3 h-3 text-dorado flex-shrink-0" />
-              <span>Clases en Video y Guías</span>
-            </div>
-            <div className="flex items-center justify-center sm:justify-start gap-2">
-              <StarIcon className="w-3 h-3 text-dorado flex-shrink-0" />
-              <span>Vademécums en PDF</span>
-            </div>
-            <div className="flex items-center justify-center sm:justify-start gap-2">
-              <StarIcon className="w-3 h-3 text-dorado flex-shrink-0" />
-              <span>Certificado Verificable</span>
-            </div>
-            <div className="flex items-center justify-center sm:justify-start gap-2">
-              <StarIcon className="w-3 h-3 text-dorado flex-shrink-0" />
-              <span>Abono con Mercado Pago</span>
-            </div>
+            {(
+              settings?.heroBadges ||
+              'Clases en Video y Guías, Vademécums en PDF, Certificado Verificable, Abono con Mercado Pago'
+            )
+              .split(',')
+              .map((badge) => badge.trim())
+              .filter(Boolean)
+              .map((badge) => (
+                <div key={badge} className="flex items-center justify-center sm:justify-start gap-2">
+                  <StarIcon className="w-3 h-3 text-dorado flex-shrink-0" />
+                  <span>{badge}</span>
+                </div>
+              ))}
           </div>
         </div>
       </section>

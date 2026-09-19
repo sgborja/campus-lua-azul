@@ -19,9 +19,18 @@ import {
   KeyRound,
 } from 'lucide-react';
 
+const STAFF_ROLES = ['ADMIN', 'PROFESOR', 'EDITOR'];
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Admin',
+  PROFESOR: 'Profesor',
+  EDITOR: 'Editor',
+  STUDENT: 'Alumna/o',
+};
+
 export default function Navbar() {
   const pathname = usePathname();
   const { user, role, logout } = useAuth();
+  const isStaff = STAFF_ROLES.includes(role);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
@@ -79,7 +88,7 @@ export default function Navbar() {
               Certificados
             </Link>
 
-            {user && user.role === 'ADMIN' && (
+            {isStaff && (
               <Link
                 href="/admin"
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
@@ -108,9 +117,9 @@ export default function Navbar() {
                       {user.name}
                     </span>
                     <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                      role === 'ADMIN' ? 'text-dorado' : 'text-verde'
+                      isStaff ? 'text-dorado' : 'text-verde'
                     }`}>
-                      {role === 'ADMIN' ? 'Admin' : 'Alumno'}
+                      {ROLE_LABELS[role] || 'Alumna/o'}
                     </span>
                   </div>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -129,7 +138,7 @@ export default function Navbar() {
                     </div>
 
                     <div className="py-1">
-                      {role === 'ADMIN' && (
+                      {isStaff && (
                         <Link
                           href="/admin"
                           onClick={() => setUserDropdownOpen(false)}
@@ -235,7 +244,7 @@ export default function Navbar() {
             <Award className="w-4 h-4 text-dorado" />
             Mis Certificados
           </Link>
-          {user && user.role === 'ADMIN' && (
+          {isStaff && (
             <Link
               href="/admin"
               onClick={() => setMobileMenuOpen(false)}
@@ -248,7 +257,7 @@ export default function Navbar() {
 
           {user ? (
             <div className="pt-4 border-t border-slate-200 space-y-2">
-              <div className="text-xs font-semibold text-slate-500">Sesión: {user.name} ({role === 'ADMIN' ? 'Admin' : 'Alumno'})</div>
+              <div className="text-xs font-semibold text-slate-500">Sesión: {user.name} ({ROLE_LABELS[role] || 'Alumna/o'})</div>
               <Link
                 href="/cuenta"
                 onClick={() => setMobileMenuOpen(false)}

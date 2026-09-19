@@ -121,6 +121,19 @@ export default function AdminSettingsPage() {
             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
           />
         </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">
+            Chips de valor (separados por coma)
+          </label>
+          <input
+            type="text"
+            value={settings.heroBadges}
+            onChange={(e) => handleChange('heroBadges', e.target.value)}
+            placeholder="Clases en Video y Guías, Vademécums en PDF, Certificado Verificable, Abono con Mercado Pago"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
       </div>
 
       {/* Footer */}
