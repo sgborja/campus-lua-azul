@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { Course } from '@/lib/types';
-import { requireAdmin, requireSelfOrAdmin, getSessionUser } from '@/lib/auth';
+import { requireAdmin, requireSelfOrAdmin, getSessionUser, canManageCourse } from '@/lib/auth';
 
 function stripPaidContent(course: Course): Course {
   return {
@@ -29,8 +29,11 @@ export async function GET(
     return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
   }
 
-  if (!course.published && !(await requireAdmin(req))) {
-    return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+  if (!course.published) {
+    const admin = await requireAdmin(req);
+    if (!admin || !canManageCourse(admin, course)) {
+      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+    }
   }
 
   const url = new URL(req.url);
@@ -68,7 +71,8 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  if (!(await requireAdmin(req))) {
+  const admin = await requireAdmin(req);
+  if (!admin) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
@@ -76,8 +80,16 @@ export async function PUT(
     if (!course) {
       return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
     }
+    if (!canManageCourse(admin, course)) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
 
     const body = await req.json();
+    // Un Profesor no puede reasignar a qué profesores pertenece el curso.
+    if (admin.role === 'PROFESOR') {
+      delete body.instructorIds;
+    }
+
     const updated = {
       ...course,
       ...body,
@@ -96,10 +108,18 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  if (!(await requireAdmin(req))) {
+  const admin = await requireAdmin(req);
+  if (!admin) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
+    const course = await db.getCourseById(params.id);
+    if (!course) {
+      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+    }
+    if (!canManageCourse(admin, course)) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
     await db.deleteCourse(params.id);
     return NextResponse.json({ success: true });
   } catch (error) {

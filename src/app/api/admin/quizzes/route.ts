@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { Quiz } from '@/lib/types';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin, canManageCourse } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin(req))) {
+  const admin = await requireAdmin(req);
+  if (!admin) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
@@ -13,6 +14,14 @@ export async function POST(req: NextRequest) {
 
     if (!courseId) {
       return NextResponse.json({ error: 'courseId es requerido' }, { status: 400 });
+    }
+
+    const targetCourse = await db.getCourseById(courseId);
+    if (!targetCourse) {
+      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+    }
+    if (!canManageCourse(admin, targetCourse)) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
     if (!quiz || !quiz.title || !quiz.questions || quiz.questions.length === 0) {
@@ -50,7 +59,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!(await requireAdmin(req))) {
+  const admin = await requireAdmin(req);
+  if (!admin) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
@@ -59,6 +69,14 @@ export async function DELETE(req: NextRequest) {
 
     if (!courseId) {
       return NextResponse.json({ error: 'courseId es requerido' }, { status: 400 });
+    }
+
+    const targetCourse = await db.getCourseById(courseId);
+    if (!targetCourse) {
+      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+    }
+    if (!canManageCourse(admin, targetCourse)) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
     const updated = await db.deleteCourseQuiz(courseId);

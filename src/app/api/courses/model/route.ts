@@ -3,11 +3,15 @@ import { db, getModelCourse } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin(req))) {
+  const admin = await requireAdmin(req);
+  if (!admin) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
     const modelCourse = getModelCourse();
+    if (admin.role === 'PROFESOR') {
+      modelCourse.instructorIds = [admin.id];
+    }
     await db.saveCourse(modelCourse);
     return NextResponse.json({ success: true, course: modelCourse });
   } catch (error) {

@@ -88,6 +88,7 @@ export interface Course {
   published: boolean;
   durationHours: number;
   certificateEnabled: boolean;
+  instructorIds?: string[]; // Profesores a cargo; sin asignar = visible solo para Admin/Editor
   modules: Module[];
   resources: Resource[];
   quiz?: Quiz;

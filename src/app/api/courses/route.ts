@@ -8,9 +8,16 @@ export async function GET(req: NextRequest) {
   const userId = url.searchParams.get('userId');
   const wantsAdminView = url.searchParams.get('admin') === 'true';
 
-  const isAdmin = wantsAdminView && !!(await requireAdmin(req));
+  const adminUser = wantsAdminView ? await requireAdmin(req) : null;
+  const isAdmin = !!adminUser;
   const allCourses = await db.getCourses();
-  const courses = isAdmin ? allCourses : allCourses.filter((c) => c.published);
+  let courses = isAdmin ? allCourses : allCourses.filter((c) => c.published);
+
+  // Un Profesor solo gestiona los cursos donde figura como profesor a cargo;
+  // Admin y Editor ven todos.
+  if (adminUser?.role === 'PROFESOR') {
+    courses = courses.filter((c) => c.instructorIds?.includes(adminUser.id));
+  }
 
   if (!userId) {
     return NextResponse.json({ courses });
@@ -41,7 +48,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin(req))) {
+  const admin = await requireAdmin(req);
+  if (!admin) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
@@ -49,6 +57,11 @@ export async function POST(req: NextRequest) {
     if (!body.title || !body.slug) {
       return NextResponse.json({ error: 'Título y slug son requeridos' }, { status: 400 });
     }
+
+    // Un Profesor siempre queda a cargo del curso que crea (no puede
+    // crearlo "para otro"); Admin/Editor pueden asignar profesores libremente.
+    const instructorIds: string[] =
+      admin.role === 'PROFESOR' ? [admin.id] : Array.isArray(body.instructorIds) ? body.instructorIds : [];
 
     const newCourse: Course = {
       id: `course_${Date.now()}`,
@@ -65,6 +78,7 @@ export async function POST(req: NextRequest) {
       published: body.published !== undefined ? body.published : true,
       durationHours: Number(body.durationHours) || 1,
       certificateEnabled: body.certificateEnabled !== undefined ? body.certificateEnabled : true,
+      instructorIds,
       modules: body.modules || [],
       resources: body.resources || [],
       quiz: body.quiz || undefined,

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { db } from './db';
-import { User, UserRole } from './types';
+import { Course, User, UserRole } from './types';
 
 export const SESSION_COOKIE = 'campus_session';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 días
@@ -103,6 +103,15 @@ export async function requireSuperAdmin(req: NextRequest): Promise<User | null> 
   const user = await getSessionUser(req);
   if (!user || user.role !== 'ADMIN') return null;
   return user;
+}
+
+/**
+ * ADMIN y EDITOR gestionan cualquier curso. PROFESOR solo los cursos donde
+ * figura como profesor a cargo (un curso puede tener varios profesores).
+ */
+export function canManageCourse(user: User, course: Course): boolean {
+  if (user.role !== 'PROFESOR') return true;
+  return !!course.instructorIds?.includes(user.id);
 }
 
 /**

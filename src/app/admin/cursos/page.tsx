@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Course, Module, Lesson, Resource } from '@/lib/types';
 import RichTextEditor from '@/components/admin/RichTextEditor';
+import { useAuth } from '@/lib/auth-context';
 import {
   BookOpen,
   PlusCircle,
@@ -24,7 +25,10 @@ import {
 } from 'lucide-react';
 
 export default function AdminCoursesPage() {
+  const { user } = useAuth();
+  const canAssignInstructors = user?.role === 'ADMIN' || user?.role === 'EDITOR';
   const [courses, setCourses] = useState<Course[]>([]);
+  const [staffUsers, setStaffUsers] = useState<{ id: string; name: string; role: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -34,6 +38,7 @@ export default function AdminCoursesPage() {
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [category, setCategory] = useState('Terapia Floral');
+  const [instructorIds, setInstructorIds] = useState<string[]>([]);
   const [price, setPrice] = useState(15000);
   const [isFree, setIsFree] = useState(false);
   const [priceOnRequest, setPriceOnRequest] = useState(false);
@@ -146,6 +151,17 @@ export default function AdminCoursesPage() {
     fetchCourses();
   }, []);
 
+  useEffect(() => {
+    if (!canAssignInstructors) return;
+    fetch('/api/admin/metrics')
+      .then((res) => res.json())
+      .then((data) => {
+        const staff = (data.allUsers || []).filter((u: any) => u.role === 'PROFESOR');
+        setStaffUsers(staff);
+      })
+      .catch((err) => console.error(err));
+  }, [canAssignInstructors]);
+
   const handleTitleChange = (val: string) => {
     setTitle(val);
     if (!isEditing) {
@@ -165,6 +181,7 @@ export default function AdminCoursesPage() {
     setTitle('');
     setSlug('');
     setCategory('Terapia Floral');
+    setInstructorIds([]);
     setPrice(15000);
     setIsFree(false);
     setPriceOnRequest(false);
@@ -190,6 +207,7 @@ export default function AdminCoursesPage() {
     setTitle(course.title);
     setSlug(course.slug);
     setCategory(course.category || 'Terapia Floral');
+    setInstructorIds(course.instructorIds || []);
     setPrice(course.price || 0);
     setIsFree(Boolean(course.isFree));
     setPriceOnRequest(Boolean(course.priceOnRequest));
@@ -277,6 +295,7 @@ export default function AdminCoursesPage() {
           title,
           slug,
           category,
+          ...(canAssignInstructors ? { instructorIds } : {}),
           price: isFree ? 0 : Number(price),
           isFree,
           priceOnRequest,
@@ -319,6 +338,7 @@ export default function AdminCoursesPage() {
           title,
           slug,
           category,
+          ...(canAssignInstructors ? { instructorIds } : {}),
           price: isFree ? 0 : Number(price),
           isFree,
           priceOnRequest,
@@ -551,6 +571,17 @@ export default function AdminCoursesPage() {
                       </p>
                     )}
 
+                    {canAssignInstructors && (
+                      <p className="text-[11px] text-slate-500">
+                        Profesor/a:{' '}
+                        {course.instructorIds && course.instructorIds.length > 0
+                          ? course.instructorIds
+                              .map((id) => staffUsers.find((s) => s.id === id)?.name || 'Desconocido')
+                              .join(', ')
+                          : 'Sin asignar'}
+                      </p>
+                    )}
+
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 pt-2 border-t border-slate-100">
                       <span className="flex items-center gap-1">
                         <BookOpen className="w-3.5 h-3.5 text-lua-600" />
@@ -684,6 +715,46 @@ export default function AdminCoursesPage() {
                   </datalist>
                 </div>
               </div>
+
+              {canAssignInstructors && (
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Profesor/a a cargo</label>
+                  {staffUsers.length === 0 ? (
+                    <p className="text-[11px] text-slate-400">
+                      No hay usuarios con rol Profesor todavía. Asignalo desde Alumnos y Progreso.
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {staffUsers.map((s) => {
+                        const checked = instructorIds.includes(s.id);
+                        return (
+                          <label
+                            key={s.id}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs cursor-pointer transition-colors ${
+                              checked ? 'bg-lua-50 border-lua-400 text-lua-700 font-semibold' : 'bg-white border-slate-200 text-slate-600'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) =>
+                                setInstructorIds((prev) =>
+                                  e.target.checked ? [...prev, s.id] : prev.filter((id) => id !== s.id)
+                                )
+                              }
+                              className="rounded"
+                            />
+                            {s.name}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-slate-400">
+                    Sin marcar ninguno, solo Admin y Editor pueden gestionar este curso.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
