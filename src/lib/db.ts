@@ -629,6 +629,13 @@ export const db = {
       heroBadges:
         data.hero_badges ??
         'Clases en Video y Guías, Vademécums en PDF, Certificado Verificable, Abono con Mercado Pago',
+      footerLinksText:
+        data.footer_links_text ??
+        'Flores de Bach|/curso/seminario-flores-de-bach\nReiki Usui Tradicional|/#seminarios\nRunas Vikingas|/curso/runas-vikingas\nFlores de California|/#seminarios\nÁrea de Miembros|/campus',
+      footerContactEmail: data.footer_contact_email ?? 'campus@luaazul.com.ar',
+      footerExternalLinkLabel: data.footer_external_link_label ?? 'Línea Objeto: luaazul.com.ar →',
+      footerExternalLinkUrl: data.footer_external_link_url ?? 'https://www.luaazul.com.ar',
+      footerPaymentText: data.footer_payment_text ?? 'Cobro seguro con Mercado Pago',
     };
   },
   saveSiteSettings: async (settings: SiteSettings): Promise<SiteSettings> => {
@@ -647,6 +654,11 @@ export const db = {
         hero_title_accent: settings.heroTitleAccent,
         hero_subtitle: settings.heroSubtitle,
         hero_badges: settings.heroBadges,
+        footer_links_text: settings.footerLinksText,
+        footer_contact_email: settings.footerContactEmail,
+        footer_external_link_label: settings.footerExternalLinkLabel,
+        footer_external_link_url: settings.footerExternalLinkUrl,
+        footer_payment_text: settings.footerPaymentText,
       })
       .eq('id', true)
       .select()
@@ -665,6 +677,11 @@ export const db = {
       heroTitleAccent: data.hero_title_accent,
       heroSubtitle: data.hero_subtitle,
       heroBadges: data.hero_badges,
+      footerLinksText: data.footer_links_text,
+      footerContactEmail: data.footer_contact_email,
+      footerExternalLinkLabel: data.footer_external_link_label,
+      footerExternalLinkUrl: data.footer_external_link_url,
+      footerPaymentText: data.footer_payment_text,
     };
   },
 

@@ -8,6 +8,20 @@ import { unstable_noStore as noStore } from 'next/cache';
 const FALLBACK_DESCRIPTION =
   'Formación con raíz botánica y profundidad simbólica, para leerte a vos y acompañar a otros. Cursos en Flores de Bach, Reiki, Runas Vikingas y Flores de California.';
 const FALLBACK_TAGLINE = 'Hacer las cosas con cuidado y que se note.';
+const FALLBACK_LINKS_TEXT =
+  'Flores de Bach|/curso/seminario-flores-de-bach\nReiki Usui Tradicional|/#seminarios\nRunas Vikingas|/curso/runas-vikingas\nFlores de California|/#seminarios\nÁrea de Miembros|/campus';
+
+function parseFooterLinks(text: string): { label: string; href: string }[] {
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [label, href] = line.split('|').map((part) => part.trim());
+      return { label: label || '', href: href || '/' };
+    })
+    .filter((l) => l.label);
+}
 
 export default async function Footer() {
   // Este componente vive en el layout raíz, así que sin esto Next.js lo
@@ -18,6 +32,11 @@ export default async function Footer() {
   const footerDescription = settings?.footerDescription || FALLBACK_DESCRIPTION;
   const footerTagline = settings?.footerTagline || FALLBACK_TAGLINE;
   const footerLocation = settings?.footerLocation || '';
+  const footerLinks = parseFooterLinks(settings?.footerLinksText || FALLBACK_LINKS_TEXT);
+  const footerContactEmail = settings?.footerContactEmail || 'campus@luaazul.com.ar';
+  const footerExternalLinkLabel = settings?.footerExternalLinkLabel || 'Línea Objeto: luaazul.com.ar →';
+  const footerExternalLinkUrl = settings?.footerExternalLinkUrl || 'https://www.luaazul.com.ar';
+  const footerPaymentText = settings?.footerPaymentText || 'Cobro seguro con Mercado Pago';
 
   return (
     <footer className="bg-azul-950 text-celeste border-t border-azul/40 mt-20 no-print">
@@ -44,31 +63,16 @@ export default async function Footer() {
               Seminarios
             </h3>
             <ul className="space-y-2 text-xs text-celeste/70">
-              <li>
-                <Link href="/curso/seminario-flores-de-bach" className="hover:text-white transition-colors">
-                  Flores de Bach
-                </Link>
-              </li>
-              <li>
-                <Link href="/#seminarios" className="hover:text-white transition-colors">
-                  Reiki Usui Tradicional
-                </Link>
-              </li>
-              <li>
-                <Link href="/curso/runas-vikingas" className="hover:text-white transition-colors">
-                  Runas Vikingas
-                </Link>
-              </li>
-              <li>
-                <Link href="/#seminarios" className="hover:text-white transition-colors">
-                  Flores de California
-                </Link>
-              </li>
-              <li>
-                <Link href="/campus" className="hover:text-white transition-colors text-dorado">
-                  Área de Miembros
-                </Link>
-              </li>
+              {footerLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className={`hover:text-white transition-colors ${link.href === '/campus' ? 'text-dorado' : ''}`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -80,21 +84,21 @@ export default async function Footer() {
             <ul className="space-y-2 text-xs text-celeste/70">
               <li className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-verde" />
-                <span>campus@luaazul.com.ar</span>
+                <span>{footerContactEmail}</span>
               </li>
               <li>
                 <a
-                  href="https://www.luaazul.com.ar"
+                  href={footerExternalLinkUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="hover:text-white transition-colors text-dorado"
                 >
-                  Línea Objeto: luaazul.com.ar →
+                  {footerExternalLinkLabel}
                 </a>
               </li>
               <li>
                 <span className="text-[11px] text-celeste/50">
-                  Cobro seguro con Mercado Pago
+                  {footerPaymentText}
                 </span>
               </li>
             </ul>

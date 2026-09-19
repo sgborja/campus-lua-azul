@@ -183,6 +183,11 @@ export interface SiteSettings {
   heroTitleAccent: string;
   heroSubtitle: string;
   heroBadges: string; // separados por coma, ej. "Clases en Video y Guías, Vademécums en PDF"
+  footerLinksText: string; // una por línea, formato "Texto|/enlace"
+  footerContactEmail: string;
+  footerExternalLinkLabel: string;
+  footerExternalLinkUrl: string;
+  footerPaymentText: string;
 }
 
 export interface BirthdayEmailLog {
