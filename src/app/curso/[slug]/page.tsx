@@ -314,7 +314,7 @@ export default function CourseDetailPage() {
               Acerca de este curso
             </h2>
             <div
-              className="prose prose-slate text-sm text-slate-600 leading-relaxed whitespace-pre-line [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-lua-600 [&_a]:underline"
+              className="prose prose-slate text-sm text-slate-600 leading-relaxed whitespace-pre-line [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-lua-600 [&_a]:underline [&_h3]:text-lg [&_h3]:font-serif [&_h3]:font-bold [&_h3]:text-azul-dark [&_h3]:mt-4 [&_h4]:text-sm [&_h4]:font-bold [&_h4]:uppercase [&_h4]:tracking-wide [&_h4]:text-slate-700 [&_h4]:mt-3 [&_blockquote]:border-l-4 [&_blockquote]:border-lua-400 [&_blockquote]:pl-4 [&_blockquote]:italic [&_table]:w-full [&_table]:my-3 [&_table]:border-collapse [&_th]:border [&_th]:border-slate-200 [&_th]:bg-slate-50 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-200 [&_td]:p-2"
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(course.description) }}
             />
           </div>

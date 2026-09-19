@@ -12,6 +12,15 @@ const ALLOWED_TAGS = new Set([
   "a",
   "div",
   "span",
+  "h3",
+  "h4",
+  "blockquote",
+  "table",
+  "thead",
+  "tbody",
+  "tr",
+  "th",
+  "td",
 ]);
 
 const ALLOWED_ATTRS: Record<string, string[]> = {
