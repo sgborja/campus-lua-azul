@@ -25,6 +25,7 @@ export default function AdminExamsPage() {
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [originalCourseId, setOriginalCourseId] = useState('');
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [examTitle, setExamTitle] = useState('');
   const [examDescription, setExamDescription] = useState('Evaluación requerida para emitir tu certificado oficial.');
@@ -89,6 +90,7 @@ export default function AdminExamsPage() {
   const handleOpenEditModal = (course: Course) => {
     if (!course.quiz) return;
     setIsEditing(true);
+    setOriginalCourseId(course.id);
     setSelectedCourseId(course.id);
     setExamTitle(course.quiz.title);
     setExamDescription(course.quiz.description || '');
@@ -204,6 +206,12 @@ export default function AdminExamsPage() {
 
     setSaving(true);
     try {
+      // Si estamos editando y se cambió el curso, primero liberamos el
+      // examen del curso original para no dejarlo duplicado en dos cursos.
+      if (isEditing && originalCourseId && originalCourseId !== selectedCourseId) {
+        await fetch(`/api/admin/quizzes?courseId=${originalCourseId}`, { method: 'DELETE' });
+      }
+
       const res = await fetch('/api/admin/quizzes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -500,17 +508,21 @@ export default function AdminExamsPage() {
                 <div className="space-y-1">
                   <label className="font-semibold text-slate-700 block">¿A qué curso pertenece? *</label>
                   <select
-                    disabled={isEditing}
                     value={selectedCourseId}
                     onChange={(e) => setSelectedCourseId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white outline-none disabled:bg-slate-50"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white outline-none"
                   >
                     {courses.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.title} {c.quiz ? '(Ya tiene examen)' : ''}
+                        {c.title} {c.quiz && c.id !== originalCourseId ? '(Ya tiene examen, se reemplazará)' : ''}
                       </option>
                     ))}
                   </select>
+                  {isEditing && (
+                    <p className="text-[11px] text-slate-400">
+                      Podés cambiar el curso: el examen se moverá al curso que elijas.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1">

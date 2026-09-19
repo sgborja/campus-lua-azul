@@ -236,8 +236,28 @@ export const db = {
     if (error) throw error;
   },
   updateUserPassword: async (userId: string, passwordHash: string): Promise<void> => {
-    const { error } = await sb.from('users').update({ password_hash: passwordHash }).eq('id', userId);
+    const { error } = await sb
+      .from('users')
+      .update({ password_hash: passwordHash, reset_token: null, reset_token_expires: null })
+      .eq('id', userId);
     if (error) throw error;
+  },
+  setPasswordResetToken: async (userId: string, token: string, expiresAt: string): Promise<void> => {
+    const { error } = await sb
+      .from('users')
+      .update({ reset_token: token, reset_token_expires: expiresAt })
+      .eq('id', userId);
+    if (error) throw error;
+  },
+  getUserByResetToken: async (token: string): Promise<User | undefined> => {
+    const { data, error } = await sb
+      .from('users')
+      .select('*')
+      .eq('reset_token', token)
+      .gt('reset_token_expires', new Date().toISOString())
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToUser(data) : undefined;
   },
 
   // COURSES

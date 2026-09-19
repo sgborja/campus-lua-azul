@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Lock, Mail, GraduationCap, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
 import LuaAzulLogo from '@/components/LuaAzulLogo';
 
 export default function LoginPage() {
@@ -92,6 +92,9 @@ export default function LoginPage() {
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="font-semibold text-slate-700 block">Contraseña</label>
+              <Link href="/recuperar" className="text-[11px] font-semibold text-lua-600 hover:text-lua-700 hover:underline">
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -116,25 +119,17 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Admin hint note */}
-        <div className="bg-amber-50/60 border border-amber-200/70 rounded-xl p-3 text-[11px] text-amber-900 flex items-start gap-2.5">
-          <ShieldCheck className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <strong>Acceso de Administración:</strong> Si eres Sabrina Borja, ingresa con tu correo de administradora para acceder directamente al panel de gestión.
-          </div>
-        </div>
-
         {/* Register prompt */}
         <div className="pt-2 border-t border-slate-100 text-center space-y-2">
           <p className="text-xs text-slate-500">
-            ¿Aún no tienes cuenta de alumna?
+            ¿Aún no tienes cuenta?
           </p>
           <Link
             href="/registro"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-lua-600 hover:text-lua-700 hover:underline"
           >
             <Sparkles className="w-3.5 h-3.5 text-dorado" />
-            <span>Crear cuenta gratis de alumna</span>
+            <span>Crear cuenta</span>
           </Link>
         </div>
 
