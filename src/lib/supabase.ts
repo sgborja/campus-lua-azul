@@ -12,5 +12,14 @@ export function createAdminClient() {
 
   return createClient(url, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    // Supabase-js hace sus requests con fetch, y Next.js cachea todo fetch
+    // por default en el App Router salvo que se le diga lo contrario acá.
+    // Sin esto, una fila que se acaba de actualizar en la base puede seguir
+    // devolviendo el valor viejo durante mucho tiempo (visto en producción:
+    // guardar Ajustes "funcionaba" pero al recargar seguía el dato anterior).
+    global: {
+      fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+        fetch(input, { ...init, cache: 'no-store' }),
+    },
   });
 }
