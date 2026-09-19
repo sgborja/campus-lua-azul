@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import LuaAzulLogo, { StarIcon } from './LuaAzulLogo';
+import UserAvatar from './UserAvatar';
 import {
   BookOpen,
   GraduationCap,
@@ -101,11 +102,7 @@ export default function Navbar() {
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
                 >
-                  <img
-                    src={user.avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover border border-verde/30"
-                  />
+                  <UserAvatar avatar={user.avatar} name={user.name} className="w-8 h-8" />
                   <div className="text-left leading-none">
                     <span className="block text-xs font-semibold text-slate-800 max-w-[120px] truncate">
                       {user.name}

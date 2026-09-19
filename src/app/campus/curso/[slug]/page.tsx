@@ -24,6 +24,7 @@ import {
   AlertCircle,
   HelpCircle,
   Share2,
+  Presentation,
 } from 'lucide-react';
 
 function CourseClassroomContent() {
@@ -310,6 +311,10 @@ function CourseClassroomContent() {
                               <span className="flex items-center gap-1">
                                 <Video className="w-3 h-3 text-lua-400" /> Video
                               </span>
+                            ) : les.type === 'PPT' ? (
+                              <span className="flex items-center gap-1">
+                                <Presentation className="w-3 h-3 text-orange-400" /> Presentación
+                              </span>
                             ) : (
                               <span className="flex items-center gap-1">
                                 <FileText className="w-3 h-3 text-amber-400" /> Guía
@@ -359,6 +364,14 @@ function CourseClassroomContent() {
                     title={activeLesson.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    className="w-full h-full border-0"
+                  />
+                </div>
+              ) : activeLesson.type === 'PPT' && activeLesson.pptUrl ? (
+                <div className="aspect-video w-full bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-800">
+                  <iframe
+                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(activeLesson.pptUrl)}`}
+                    title={activeLesson.title}
                     className="w-full h-full border-0"
                   />
                 </div>

@@ -45,15 +45,65 @@ export default function AdminCoursesPage() {
 
   // Sample lesson to include
   const [lessonTitle, setLessonTitle] = useState('1.1 Introducción práctica y fundamentos');
-  const [lessonType, setLessonType] = useState<'VIDEO' | 'TEXT'>('VIDEO');
+  const [lessonType, setLessonType] = useState<'VIDEO' | 'TEXT' | 'PPT'>('VIDEO');
   const [lessonVideoUrl, setLessonVideoUrl] = useState('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
   const [lessonContent, setLessonContent] = useState('Guía inicial de preparación botánica y principios del método.');
+  const [lessonPptUrl, setLessonPptUrl] = useState('');
+  const [uploadingPpt, setUploadingPpt] = useState(false);
+
+  const handlePptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPpt(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setLessonPptUrl(data.url);
+      } else {
+        alert(data.error || 'Error al subir la presentación');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión al subir la presentación');
+    } finally {
+      setUploadingPpt(false);
+      e.target.value = '';
+    }
+  };
 
   // Resource to attach
   const [resourceTitle, setResourceTitle] = useState('Guía Oficial en PDF Lua Azul');
   const [resourceFileUrl, setResourceFileUrl] = useState('/docs/Guia-Medidas-A5-LuaAzul.pdf');
 
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setCoverImage(data.url);
+      } else {
+        alert(data.error || 'Error al subir la imagen');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión al subir la imagen');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
 
   const fetchCourses = () => {
     setLoading(true);
@@ -102,6 +152,7 @@ export default function AdminCoursesPage() {
     setLessonType('VIDEO');
     setLessonVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
     setLessonContent('Guía inicial de preparación botánica y principios del método.');
+    setLessonPptUrl('');
     setResourceTitle('Guía Oficial en PDF Lua Azul');
     setResourceFileUrl('/docs/Guia-Medidas-A5-LuaAzul.pdf');
     setShowModal(true);
@@ -129,6 +180,7 @@ export default function AdminCoursesPage() {
     setLessonType(firstLes?.type || 'VIDEO');
     setLessonVideoUrl(firstLes?.videoUrl || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
     setLessonContent(firstLes?.content || '');
+    setLessonPptUrl(firstLes?.pptUrl || '');
 
     const firstRes = course.resources?.[0];
     setResourceTitle(firstRes?.title || 'Guía Oficial en PDF Lua Azul');
@@ -158,6 +210,7 @@ export default function AdminCoursesPage() {
                   title: lessonTitle,
                   type: lessonType,
                   videoUrl: lessonType === 'VIDEO' ? lessonVideoUrl : undefined,
+                  pptUrl: lessonType === 'PPT' ? lessonPptUrl : undefined,
                   content: lessonContent,
                 };
                 return { ...m, lessons: updatedLessons };
@@ -178,6 +231,7 @@ export default function AdminCoursesPage() {
                     title: lessonTitle,
                     type: lessonType,
                     videoUrl: lessonType === 'VIDEO' ? lessonVideoUrl : undefined,
+                  pptUrl: lessonType === 'PPT' ? lessonPptUrl : undefined,
                     durationMinutes: 15,
                     order: 1,
                     content: lessonContent,
@@ -256,6 +310,7 @@ export default function AdminCoursesPage() {
                   title: lessonTitle,
                   type: lessonType,
                   videoUrl: lessonType === 'VIDEO' ? lessonVideoUrl : undefined,
+                  pptUrl: lessonType === 'PPT' ? lessonPptUrl : undefined,
                   durationMinutes: 20,
                   order: 1,
                   content: lessonContent,
@@ -651,14 +706,31 @@ export default function AdminCoursesPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold text-slate-700 block">Foto de Portada (URL)</label>
-                <input
-                  type="text"
-                  value={coverImage}
-                  onChange={(e) => setCoverImage(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono"
-                />
+                <label className="font-semibold text-slate-700 block">Foto de Portada</label>
+                <div className="flex items-center gap-3">
+                  {coverImage && (
+                    <img src={coverImage} alt="Portada" className="w-16 h-16 rounded-lg object-cover border border-slate-200 flex-shrink-0" />
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="text"
+                      value={coverImage}
+                      onChange={(e) => setCoverImage(e.target.value)}
+                      placeholder="https://images.unsplash.com/... (o subí un archivo)"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono"
+                    />
+                    <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-lua-600 hover:text-lua-700 cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="hidden"
+                        disabled={uploadingImage}
+                        onChange={handleCoverImageUpload}
+                      />
+                      <span>{uploadingImage ? 'Subiendo...' : '📁 Subir imagen desde mi computadora'}</span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -709,6 +781,7 @@ export default function AdminCoursesPage() {
                     >
                       <option value="VIDEO">Video (YouTube / Vimeo / MP4)</option>
                       <option value="TEXT">Lectura / Guía en Texto</option>
+                      <option value="PPT">Presentación PowerPoint</option>
                     </select>
                   </div>
                 </div>
@@ -722,6 +795,26 @@ export default function AdminCoursesPage() {
                       onChange={(e) => setLessonVideoUrl(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white font-mono"
                     />
+                  </div>
+                ) : lessonType === 'PPT' ? (
+                  <div className="space-y-2">
+                    <label className="font-medium text-slate-600 block mb-1">Archivo de PowerPoint</label>
+                    {lessonPptUrl && (
+                      <p className="text-[11px] text-emerald-700 truncate">✓ {lessonPptUrl}</p>
+                    )}
+                    <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-lua-600 hover:text-lua-700 cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".ppt,.pptx"
+                        className="hidden"
+                        disabled={uploadingPpt}
+                        onChange={handlePptUpload}
+                      />
+                      <span>{uploadingPpt ? 'Subiendo...' : '📁 Subir archivo .ppt o .pptx'}</span>
+                    </label>
+                    <p className="text-[10px] text-slate-400">
+                      Se muestra dentro del Aula Virtual con el visor de Office, sin que la alumna tenga que abrir PowerPoint.
+                    </p>
                   </div>
                 ) : (
                   <div>

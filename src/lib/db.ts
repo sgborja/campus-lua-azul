@@ -235,6 +235,10 @@ export const db = {
     const { error } = await sb.from('users').delete().eq('id', userId);
     if (error) throw error;
   },
+  updateUserAvatar: async (userId: string, avatar: string): Promise<void> => {
+    const { error } = await sb.from('users').update({ avatar }).eq('id', userId);
+    if (error) throw error;
+  },
   updateUserPassword: async (userId: string, passwordHash: string): Promise<void> => {
     const { error } = await sb
       .from('users')

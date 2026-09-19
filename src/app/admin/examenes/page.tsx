@@ -16,6 +16,8 @@ import {
   Sparkles,
   ArrowRight,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export default function AdminExamsPage() {
@@ -26,6 +28,16 @@ export default function AdminExamsPage() {
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [originalCourseId, setOriginalCourseId] = useState('');
+  const [expandedCourseIds, setExpandedCourseIds] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (courseId: string) => {
+    setExpandedCourseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(courseId)) next.delete(courseId);
+      else next.add(courseId);
+      return next;
+    });
+  };
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [examTitle, setExamTitle] = useState('');
   const [examDescription, setExamDescription] = useState('Evaluación requerida para emitir tu certificado oficial.');
@@ -314,12 +326,17 @@ export default function AdminExamsPage() {
 
               {coursesWithQuiz.map((c) => {
                 const quiz = c.quiz!;
+                const isExpanded = expandedCourseIds.has(c.id);
                 return (
                   <div
                     key={c.id}
-                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm space-y-6 p-6 sm:p-8"
+                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(c.id)}
+                      className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 text-left"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
                           <Award className="w-5 h-5" />
@@ -336,35 +353,51 @@ export default function AdminExamsPage() {
                         <span className="text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full">
                           Aprobación: {quiz.passingScorePercent}%
                         </span>
-
-                        <Link
-                          href={`/campus/curso/${c.slug}/examen/${quiz.id}`}
-                          target="_blank"
-                          className="px-3 py-1.5 rounded-lg bg-lua-50 text-lua-700 hover:bg-lua-100 font-bold text-xs flex items-center gap-1 transition-colors"
-                          title="Probar en el aula virtual"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Probar Examen</span>
-                        </Link>
-
-                        <button
-                          onClick={() => handleOpenEditModal(c)}
-                          className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs flex items-center gap-1 transition-colors"
-                          title="Editar preguntas"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                          <span>Editar</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleDeleteQuiz(c.id)}
-                          className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
-                          title="Eliminar examen"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 text-slate-400" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-slate-400" />
+                        )}
                       </div>
-                    </div>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="px-6 sm:px-8 pb-6 sm:pb-8 space-y-6">
+                        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+                          <Link
+                            href={`/campus/curso/${c.slug}/examen/${quiz.id}`}
+                            target="_blank"
+                            onClick={(e) => e.stopPropagation()}
+                            className="px-3 py-1.5 rounded-lg bg-lua-50 text-lua-700 hover:bg-lua-100 font-bold text-xs flex items-center gap-1 transition-colors"
+                            title="Probar en el aula virtual"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Probar Examen</span>
+                          </Link>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEditModal(c);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-xs flex items-center gap-1 transition-colors"
+                            title="Editar preguntas"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>Editar</span>
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteQuiz(c.id);
+                            }}
+                            className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
+                            title="Eliminar examen"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
 
                     {/* Questions Breakdown */}
                     <div className="space-y-4">
@@ -417,6 +450,8 @@ export default function AdminExamsPage() {
                         ))}
                       </div>
                     </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -28,9 +28,10 @@ export interface Lesson {
   moduleId: string;
   courseId: string;
   title: string;
-  type: 'VIDEO' | 'TEXT';
+  type: 'VIDEO' | 'TEXT' | 'PPT';
   content: string; // Rich guide / markdown
   videoUrl?: string; // YouTube, Vimeo, MP4 direct
+  pptUrl?: string; // Archivo .ppt/.pptx público, se embebe con el visor de Office
   durationMinutes: number;
   order: number;
   resources?: Resource[];

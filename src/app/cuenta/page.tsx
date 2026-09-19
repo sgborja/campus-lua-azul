@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { KeyRound, CheckCircle2 } from 'lucide-react';
+import UserAvatar, { AVATAR_ICONS, ICON_AVATAR_PREFIX, isIconAvatar } from '@/components/UserAvatar';
 
 export default function CuentaPage() {
   const { user, isLoading } = useAuth();
@@ -15,6 +16,10 @@ export default function CuentaPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [avatarSaved, setAvatarSaved] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -29,6 +34,29 @@ export default function CuentaPage() {
       </div>
     );
   }
+
+  const currentIcon = isIconAvatar(user.avatar) ? user.avatar!.slice(ICON_AVATAR_PREFIX.length) : null;
+
+  const handleSaveAvatar = async (iconName: string) => {
+    setSelectedIcon(iconName);
+    setSavingAvatar(true);
+    setAvatarSaved(false);
+    try {
+      const res = await fetch('/api/auth/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar: `${ICON_AVATAR_PREFIX}${iconName}` }),
+      });
+      if (res.ok) {
+        setAvatarSaved(true);
+        setTimeout(() => window.location.reload(), 700);
+      }
+    } catch {
+      // silencioso, no es crítico
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,13 +99,43 @@ export default function CuentaPage() {
     <div className="min-h-[75vh] flex items-center justify-center px-4 py-16">
       <div className="bg-white rounded-3xl p-8 sm:p-10 max-w-md w-full border border-slate-200 shadow-xl space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mx-auto">
-            <KeyRound className="w-7 h-7" />
-          </div>
+          <UserAvatar avatar={user.avatar} name={user.name} className="w-16 h-16 mx-auto" />
           <h1 className="font-serif font-bold text-2xl text-slate-900">Mi Cuenta</h1>
           <p className="text-xs text-slate-500">
             Conectada como <span className="font-semibold">{user.name}</span> ({user.email})
           </p>
+        </div>
+
+        <div className="space-y-3 border-b border-slate-100 pb-6">
+          <h2 className="text-sm font-bold text-slate-800">Ícono de Perfil</h2>
+          <p className="text-xs text-slate-500">Elegí un ícono en vez de una foto para tu avatar.</p>
+          <div className="grid grid-cols-5 gap-2">
+            {Object.entries(AVATAR_ICONS).map(([name, Icon]) => {
+              const isActive = (selectedIcon ?? currentIcon) === name;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => handleSaveAvatar(name)}
+                  disabled={savingAvatar}
+                  title={name}
+                  className={`aspect-square rounded-xl flex items-center justify-center border-2 transition-all disabled:opacity-50 ${
+                    isActive
+                      ? 'border-azul bg-celeste/50 text-azul'
+                      : 'border-slate-200 text-slate-500 hover:border-azul/40 hover:text-azul'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                </button>
+              );
+            })}
+          </div>
+          {avatarSaved && (
+            <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Ícono actualizado.
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
