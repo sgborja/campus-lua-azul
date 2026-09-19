@@ -437,11 +437,11 @@ export default function CourseDetailPage() {
               </div>
               <div>
                 <h4 className="font-bold text-sm text-slate-900">Equipo Docente Lua Azul</h4>
-                <p className="text-xs text-slate-500">Especialistas en Encuadernación & Diseño</p>
+                <p className="text-xs text-slate-500">Más de 15 años acompañando procesos de sanación</p>
               </div>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Más de 6 años creando piezas artesanales, agendas exclusivas y capacitando a personas que desean transformar su amor por el papel en un emprendimiento sustentable.
+              Más de 15 años trabajando con terapias sanadoras y transmitiendo ese conocimiento a otras personas, en seminarios de Flores de Bach, Reiki, Runas Vikingas y Flores de California dictados con seriedad y cuidado.
             </p>
           </div>
         </div>

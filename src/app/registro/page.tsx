@@ -31,7 +31,7 @@ export default function RegisterPage() {
       if (res.ok && data.user) {
         // Auto login
         await login(email, password);
-        router.push('/campus');
+        router.push('/');
       } else {
         setError(data.error || 'Error al registrar la cuenta');
       }

@@ -34,10 +34,10 @@ export default function LoginPage() {
         await login(email.trim(), password);
         
         // Redirect based on role
-        if (data.user.role === 'ADMIN') {
-          router.push('/admin');
+        if (data.user.role === 'STUDENT') {
+          router.push('/');
         } else {
-          router.push('/campus');
+          router.push('/admin');
         }
       } else {
         setError(data.error || 'Credenciales inválidas. Revisa el correo o la contraseña.');

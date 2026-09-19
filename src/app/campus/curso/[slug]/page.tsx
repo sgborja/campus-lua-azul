@@ -26,7 +26,17 @@ import {
   HelpCircle,
   Share2,
   Presentation,
+  Copy,
+  Check,
 } from 'lucide-react';
+
+// Rango Unicode del bloque Runic (usado por ejemplo en el curso de Runas Vikingas)
+const RUNIC_GLYPH_REGEX = /[ᚠ-᛿]/g;
+
+function extractGlyph(title: string): string | null {
+  const matches = title.match(RUNIC_GLYPH_REGEX);
+  return matches && matches.length > 0 ? matches.join('') : null;
+}
 
 function CourseClassroomContent() {
   const params = useParams();
@@ -36,6 +46,7 @@ function CourseClassroomContent() {
 
   const [course, setCourse] = useState<Course | null>(null);
   const [progressList, setProgressList] = useState<LessonProgress[]>([]);
+  const [glyphCopied, setGlyphCopied] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'content' | 'resources' | 'quiz'>('content');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -396,18 +407,56 @@ function CourseClassroomContent() {
                   />
                 </div>
               ) : (
-                <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-6 h-6" />
+                <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                        Lección en formato Lectura & Guía Técnica
+                      </span>
+                      <h1 className="text-xl sm:text-2xl font-serif font-bold text-white mt-0.5">
+                        {activeLesson.title}
+                      </h1>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                      Lección en formato Lectura & Guía Técnica
-                    </span>
-                    <h1 className="text-xl sm:text-2xl font-serif font-bold text-white mt-0.5">
-                      {activeLesson.title}
-                    </h1>
-                  </div>
+
+                  {(() => {
+                    const glyph = extractGlyph(activeLesson.title);
+                    if (!glyph) return null;
+                    return (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(glyph);
+                            setGlyphCopied(true);
+                            setTimeout(() => setGlyphCopied(false), 1500);
+                          } catch {
+                            // portapapeles no disponible; el glifo sigue siendo visible y seleccionable
+                          }
+                        }}
+                        title="Copiar el glifo de esta runa"
+                        className="flex-shrink-0 flex flex-col items-center gap-1 px-4 py-1 rounded-xl border border-slate-700 hover:border-amber-500/60 hover:bg-amber-500/10 transition-colors"
+                      >
+                        <span className="text-6xl sm:text-7xl font-serif text-amber-400 leading-none select-all">
+                          {glyph}
+                        </span>
+                        <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                          {glyphCopied ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-400" /> Copiado
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" /> Copiar glifo
+                            </>
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })()}
                 </div>
               )}
 
