@@ -75,19 +75,20 @@ export function publicUser(user: User): Omit<User, 'password'> {
 }
 
 /** Devuelve el usuario autenticado según la cookie de sesión firmada, o null. */
-export function getSessionUser(req: NextRequest): User | null {
+export async function getSessionUser(req: NextRequest): Promise<User | null> {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const userId = verifySessionToken(token);
   if (!userId) return null;
-  return db.getUserById(userId) || null;
+  const user = await db.getUserById(userId);
+  return user || null;
 }
 
 export function isAdminRole(role: UserRole | undefined): boolean {
   return !!role && ADMIN_ROLES.includes(role);
 }
 
-export function requireAdmin(req: NextRequest): User | null {
-  const user = getSessionUser(req);
+export async function requireAdmin(req: NextRequest): Promise<User | null> {
+  const user = await getSessionUser(req);
   if (!user || !isAdminRole(user.role)) return null;
   return user;
 }
@@ -96,8 +97,8 @@ export function requireAdmin(req: NextRequest): User | null {
  * Verifica que haya una sesión válida y que corresponda al `userId` que el
  * cliente dice estar operando (o que sea un admin actuando en nombre de otro).
  */
-export function requireSelfOrAdmin(req: NextRequest, userId: string | undefined | null): User | null {
-  const user = getSessionUser(req);
+export async function requireSelfOrAdmin(req: NextRequest, userId: string | undefined | null): Promise<User | null> {
+  const user = await getSessionUser(req);
   if (!user) return null;
   if (user.id === userId || isAdminRole(user.role)) return user;
   return null;

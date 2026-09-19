@@ -7,12 +7,12 @@ export async function POST(req: NextRequest) {
   try {
     const { courseId, userId } = await req.json();
 
-    if (!requireSelfOrAdmin(req, userId)) {
+    if (!(await requireSelfOrAdmin(req, userId))) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    const course = db.getCourseById(courseId);
-    const user = db.getUserById(userId);
+    const course = await db.getCourseById(courseId);
+    const user = await db.getUserById(userId);
 
     if (!course || !user) {
       return NextResponse.json({ error: 'Curso o Usuario no encontrado' }, { status: 404 });
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     if (course.isFree || course.price === 0) {
       // Free course: enroll directly
-      db.enroll(user.id, course.id);
+      await db.enroll(user.id, course.id);
       return NextResponse.json({
         isFree: true,
         redirectUrl: `/campus/curso/${course.slug}`,
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Save pending order
-    db.saveOrder({
+    await db.saveOrder({
       id: `ord_${Date.now()}`,
       userId: user.id,
       userEmail: user.email,

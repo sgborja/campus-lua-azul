@@ -143,8 +143,8 @@ export async function sendOrSimulateEmail(payload: EmailPayload): Promise<{ succ
 }
 
 // Birthday checker helper
-export function checkUpcomingBirthdays(daysAhead = 7) {
-  const users = db.getUsers().filter((u) => u.role === 'STUDENT' && u.birthDate);
+export async function checkUpcomingBirthdays(daysAhead = 7) {
+  const users = (await db.getUsers()).filter((u) => u.role === 'STUDENT' && u.birthDate);
   const today = new Date();
   
   const results = [];

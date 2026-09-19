@@ -1,38 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { Course } from '@/lib/types';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin, requireSelfOrAdmin } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const userId = url.searchParams.get('userId');
 
-  const courses = db.getCourses();
+  const courses = await db.getCourses();
 
   if (!userId) {
     return NextResponse.json({ courses });
   }
 
-  // Augment with user enrollment and progress data
-  const augmentedCourses = courses.map((c) => {
-    const isEnrolled = db.isEnrolled(userId, c.id);
-    const progressPercent = isEnrolled ? db.getCourseProgressPercent(userId, c.id) : 0;
-    const certificate = isEnrolled ? db.getCertificateForCourse(userId, c.id) : null;
+  if (!(await requireSelfOrAdmin(req, userId))) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
 
-    return {
-      ...c,
-      isEnrolled,
-      progressPercent,
-      hasCertificate: Boolean(certificate),
-      certificateCode: certificate?.code,
-    };
-  });
+  // Augment with user enrollment and progress data
+  const augmentedCourses = await Promise.all(
+    courses.map(async (c) => {
+      const isEnrolled = await db.isEnrolled(userId, c.id);
+      const progressPercent = isEnrolled ? await db.getCourseProgressPercent(userId, c.id) : 0;
+      const certificate = isEnrolled ? await db.getCertificateForCourse(userId, c.id) : null;
+
+      return {
+        ...c,
+        isEnrolled,
+        progressPercent,
+        hasCertificate: Boolean(certificate),
+        certificateCode: certificate?.code,
+      };
+    })
+  );
 
   return NextResponse.json({ courses: augmentedCourses });
 }
 
 export async function POST(req: NextRequest) {
-  if (!requireAdmin(req)) {
+  if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
@@ -62,7 +68,7 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
 
-    db.saveCourse(newCourse);
+    await db.saveCourse(newCourse);
     return NextResponse.json({ course: newCourse, success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Error al crear curso' }, { status: 500 });

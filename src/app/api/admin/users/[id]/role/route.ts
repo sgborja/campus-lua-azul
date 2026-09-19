@@ -7,7 +7,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const admin = requireAdmin(req);
+  const admin = await requireAdmin(req);
   if (!admin) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
@@ -19,7 +19,7 @@ export async function POST(
       return NextResponse.json({ error: 'Rol no válido' }, { status: 400 });
     }
 
-    const updatedUser = db.updateUserRole(params.id, role);
+    const updatedUser = await db.updateUserRole(params.id, role);
     if (!updatedUser) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }

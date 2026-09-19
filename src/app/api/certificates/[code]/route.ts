@@ -5,12 +5,12 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { code: string } }
 ) {
-  const cert = db.getCertificateByCode(params.code);
+  const cert = await db.getCertificateByCode(params.code);
   if (!cert) {
     return NextResponse.json({ error: 'Certificado no encontrado o código inválido', valid: false }, { status: 404 });
   }
 
-  const course = db.getCourseById(cert.courseId);
+  const course = await db.getCourseById(cert.courseId);
 
   return NextResponse.json({
     valid: true,

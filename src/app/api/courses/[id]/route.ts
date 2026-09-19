@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin, requireSelfOrAdmin } from '@/lib/auth';
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const course = db.getCourseById(params.id) || db.getCourseBySlug(params.id);
+  const course = (await db.getCourseById(params.id)) || (await db.getCourseBySlug(params.id));
   if (!course) {
     return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
   }
@@ -15,11 +15,15 @@ export async function GET(
   const userId = url.searchParams.get('userId');
 
   if (userId) {
-    const isEnrolled = db.isEnrolled(userId, course.id);
-    const progress = db.getProgress(userId, course.id);
-    const progressPercent = db.getCourseProgressPercent(userId, course.id);
-    const certificate = db.getCertificateForCourse(userId, course.id);
-    const quizAttempts = course.quiz ? db.getQuizAttempts(userId, course.quiz.id) : [];
+    if (!(await requireSelfOrAdmin(req, userId))) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const isEnrolled = await db.isEnrolled(userId, course.id);
+    const progress = await db.getProgress(userId, course.id);
+    const progressPercent = await db.getCourseProgressPercent(userId, course.id);
+    const certificate = await db.getCertificateForCourse(userId, course.id);
+    const quizAttempts = course.quiz ? await db.getQuizAttempts(userId, course.quiz.id) : [];
 
     return NextResponse.json({
       course,
@@ -38,11 +42,11 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  if (!requireAdmin(req)) {
+  if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
-    const course = db.getCourseById(params.id);
+    const course = await db.getCourseById(params.id);
     if (!course) {
       return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
     }
@@ -55,7 +59,7 @@ export async function PUT(
       updatedAt: new Date().toISOString(),
     };
 
-    db.saveCourse(updated);
+    await db.saveCourse(updated);
     return NextResponse.json({ course: updated, success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Error al actualizar curso' }, { status: 500 });
@@ -66,11 +70,11 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  if (!requireAdmin(req)) {
+  if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
-    db.deleteCourse(params.id);
+    await db.deleteCourse(params.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Error al eliminar curso' }, { status: 500 });

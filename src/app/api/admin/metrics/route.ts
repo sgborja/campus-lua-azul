@@ -4,16 +4,16 @@ import { checkUpcomingBirthdays } from '@/lib/email';
 import { requireAdmin } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
-  if (!requireAdmin(req)) {
+  if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
-  const users = db.getUsers();
+  const users = await db.getUsers();
   const students = users.filter((u) => u.role === 'STUDENT');
-  const courses = db.getCourses();
-  const certificates = db.getCertificates();
-  const orders = db.getOrders();
-  const enrollments = db.getEnrollments();
+  const courses = await db.getCourses();
+  const certificates = await db.getCertificates();
+  const orders = await db.getOrders();
+  const enrollments = await db.getEnrollments();
 
   // Calculate total revenue from approved orders
   const totalRevenue = orders
@@ -21,35 +21,39 @@ export async function GET(req: NextRequest) {
     .reduce((sum, o) => sum + (o.amount || 0), 0);
 
   // Upcoming birthdays count
-  const upcomingBirthdays = checkUpcomingBirthdays(30);
+  const upcomingBirthdays = await checkUpcomingBirthdays(30);
 
   // Detailed students data with their courses
-  const studentsWithProgress = students.map((s) => {
-    const studentEnrollments = enrollments.filter((e) => e.userId === s.id);
-    const coursesProgress = studentEnrollments.map((e) => {
-      const course = courses.find((c) => c.id === e.courseId);
-      const progressPercent = db.getCourseProgressPercent(s.id, e.courseId);
-      const cert = certificates.find((c) => c.userId === s.id && c.courseId === e.courseId);
-      return {
-        courseId: e.courseId,
-        courseTitle: course?.title || 'Curso desconocido',
-        progressPercent,
-        hasCertificate: Boolean(cert),
-        enrolledAt: e.enrolledAt,
-      };
-    });
+  const studentsWithProgress = await Promise.all(
+    students.map(async (s) => {
+      const studentEnrollments = enrollments.filter((e) => e.userId === s.id);
+      const coursesProgress = await Promise.all(
+        studentEnrollments.map(async (e) => {
+          const course = courses.find((c) => c.id === e.courseId);
+          const progressPercent = await db.getCourseProgressPercent(s.id, e.courseId);
+          const cert = certificates.find((c) => c.userId === s.id && c.courseId === e.courseId);
+          return {
+            courseId: e.courseId,
+            courseTitle: course?.title || 'Curso desconocido',
+            progressPercent,
+            hasCertificate: Boolean(cert),
+            enrolledAt: e.enrolledAt,
+          };
+        })
+      );
 
-    return {
-      id: s.id,
-      name: s.name,
-      email: s.email,
-      birthDate: s.birthDate,
-      avatar: s.avatar,
-      createdAt: s.createdAt,
-      enrolledCount: studentEnrollments.length,
-      coursesProgress,
-    };
-  });
+      return {
+        id: s.id,
+        name: s.name,
+        email: s.email,
+        birthDate: s.birthDate,
+        avatar: s.avatar,
+        createdAt: s.createdAt,
+        enrolledCount: studentEnrollments.length,
+        coursesProgress,
+      };
+    })
+  );
 
   return NextResponse.json({
     metrics: {

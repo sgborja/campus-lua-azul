@@ -4,7 +4,7 @@ import { Quiz } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  if (!requireAdmin(req)) {
+  if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       })),
     };
 
-    const updatedCourse = db.saveCourseQuiz(courseId, cleanQuiz);
+    const updatedCourse = await db.saveCourseQuiz(courseId, cleanQuiz);
     if (!updatedCourse) {
       return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
     }
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!requireAdmin(req)) {
+  if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
@@ -61,7 +61,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'courseId es requerido' }, { status: 400 });
     }
 
-    const updated = db.deleteCourseQuiz(courseId);
+    const updated = await db.deleteCourseQuiz(courseId);
     if (!updated) {
       return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
     }

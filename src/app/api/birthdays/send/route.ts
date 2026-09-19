@@ -4,18 +4,18 @@ import { renderBirthdayEmailHtml, sendOrSimulateEmail } from '@/lib/email';
 import { requireAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  if (!requireAdmin(req)) {
+  if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {
     const { userId } = await req.json();
 
-    const user = db.getUserById(userId);
+    const user = await db.getUserById(userId);
     if (!user) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }
 
-    const template = db.getBirthdayTemplate();
+    const template = await db.getBirthdayTemplate();
     const uniquePromoCode = `${template.promoCode}-${user.name.split(' ')[0].toUpperCase()}`;
 
     const emailHtml = renderBirthdayEmailHtml({
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       html: emailHtml,
     });
 
-    const log = db.logBirthdayEmail({
+    const log = await db.logBirthdayEmail({
       userId: user.id,
       userName: user.name,
       userEmail: user.email,

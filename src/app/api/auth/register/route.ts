@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'La contraseña debe tener al menos 8 caracteres' }, { status: 400 });
     }
 
-    const existing = db.getUserByEmail(email);
+    const existing = await db.getUserByEmail(email);
     if (existing) {
       return NextResponse.json({ error: 'Ya existe una cuenta con este email' }, { status: 400 });
     }
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
-    db.saveUser(newUser);
+    await db.saveUser(newUser);
 
     const response = NextResponse.json({ user: publicUser(newUser), success: true });
     response.cookies.set(SESSION_COOKIE, createSessionToken(newUser.id), sessionCookieOptions());

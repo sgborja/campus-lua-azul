@@ -8,12 +8,12 @@ export async function POST(req: NextRequest) {
   try {
     const { courseId, userId, paymentId, preferenceId } = await req.json();
 
-    if (!requireSelfOrAdmin(req, userId)) {
+    if (!(await requireSelfOrAdmin(req, userId))) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    const course = db.getCourseById(courseId);
-    const user = db.getUserById(userId);
+    const course = await db.getCourseById(courseId);
+    const user = await db.getUserById(userId);
 
     if (!course || !user) {
       return NextResponse.json({ error: 'Curso o Usuario no encontrado' }, { status: 404 });
@@ -58,10 +58,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Enroll the user in the course
-    const enrollment = db.enroll(user.id, course.id);
+    const enrollment = await db.enroll(user.id, course.id);
 
     // Update order status if exists
-    const orders = db.getOrders();
+    const orders = await db.getOrders();
     const existingOrder = orders.find(
       (o) => (preferenceId && o.mpPreferenceId === preferenceId) || (o.userId === user.id && o.courseId === course.id && o.status === 'PENDING')
     );
@@ -69,9 +69,9 @@ export async function POST(req: NextRequest) {
     if (existingOrder) {
       existingOrder.status = 'APPROVED';
       existingOrder.mpPaymentId = paymentId || `pay_${Date.now()}`;
-      db.saveOrder(existingOrder);
+      await db.saveOrder(existingOrder);
     } else {
-      db.saveOrder({
+      await db.saveOrder({
         id: `ord_${Date.now()}`,
         userId: user.id,
         userEmail: user.email,

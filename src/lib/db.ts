@@ -1,9 +1,10 @@
-import fs from 'fs';
-import path from 'path';
+import { createAdminClient } from './supabase';
 import {
   User,
   UserRole,
   Course,
+  Module,
+  Resource,
   Enrollment,
   LessonProgress,
   Certificate,
@@ -14,388 +15,521 @@ import {
   Quiz,
 } from './types';
 
-interface DatabaseSchema {
-  users: User[];
-  courses: Course[];
-  enrollments: Enrollment[];
-  progress: LessonProgress[];
-  certificates: Certificate[];
-  orders: Order[];
-  quizAttempts: QuizAttempt[];
-  birthdayTemplate: BirthdayTemplate;
-  birthdayLogs: BirthdayEmailLog[];
+const sb = createAdminClient();
+
+function must<T>(value: T | null | undefined, what: string): T {
+  if (value === null || value === undefined) throw new Error(`No se encontró: ${what}`);
+  return value;
 }
 
-const IS_SERVERLESS = Boolean(
-  process.env.VERCEL ||
-  process.env.AWS_LAMBDA_FUNCTION_NAME ||
-  process.env.NODE_ENV === 'production'
-);
+// ---------- Mappers: fila de Postgres (snake_case) <-> tipo de la app (camelCase) ----------
 
-const LOCAL_DATA_DIR = path.join(process.cwd(), 'data');
-const LOCAL_DB_FILE = path.join(LOCAL_DATA_DIR, 'db.json');
-const TMP_DB_FILE = path.join('/tmp', 'lua_azul_db.json');
-
-const globalStore = global as unknown as { __lua_azul_db?: DatabaseSchema };
-
-function getInitialData(): DatabaseSchema {
-  const now = new Date().toISOString();
-
-  // ONLY Sabrina Borja as Administrator
-  const users: User[] = [
-    {
-      id: 'usr_sabrina',
-      name: 'Sabrina Borja',
-      email: 'sgborja@gmail.com',
-      // Hash bcrypt de la contraseña real (ver comunicación aparte). Nunca
-      // guardar contraseñas en texto plano: si esto se filtra, hay que
-      // rotar la contraseña y regenerar este hash.
-      password: '$2b$12$fwfjyUXNTwUSmNf1i2UrWOEDSu1MuVZmjNDnMbiluPcztNx5uCoKe',
-      role: 'ADMIN',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      createdAt: now,
-    },
-  ];
-
-  // Clean empty courses array for the administrator to populate
-  const courses: Course[] = [];
-  const enrollments: Enrollment[] = [];
-  const progress: LessonProgress[] = [];
-  const certificates: Certificate[] = [];
-  const orders: Order[] = [];
-  const quizAttempts: QuizAttempt[] = [];
-
-  const birthdayTemplate: BirthdayTemplate = {
-    subject: 'Un saludo especial en tu día desde Lua Azul',
-    title: 'Feliz cumpleaños. Que este nuevo ciclo tenga el tiempo que merece.',
-    message: `Hola [NOMBRE]. Hoy celebramos tu día y tus ganas de seguir aprendiendo. Para acompañarte en tu camino de formación, te preparamos un 25% de descuento en cualquiera de nuestros seminarios y libros usando tu código de regalo.`,
-    promoCode: 'CUMPLELUA25',
-    discountPercent: 25,
-    validDays: 15,
-  };
-
-  const birthdayLogs: BirthdayEmailLog[] = [];
-
+function rowToUser(row: any): User {
   return {
-    users,
-    courses,
-    enrollments,
-    progress,
-    certificates,
-    orders,
-    quizAttempts,
-    birthdayTemplate,
-    birthdayLogs,
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    password: row.password_hash,
+    role: row.role,
+    birthDate: row.birth_date ?? undefined,
+    avatar: row.avatar ?? undefined,
+    createdAt: row.created_at,
   };
 }
 
-export function getDb(): DatabaseSchema {
-  if (globalStore.__lua_azul_db) {
-    return globalStore.__lua_azul_db;
-  }
-
-  // 1. Try reading from /tmp if in serverless/production
-  if (IS_SERVERLESS && fs.existsSync(TMP_DB_FILE)) {
-    try {
-      const raw = fs.readFileSync(TMP_DB_FILE, 'utf-8');
-      const data = JSON.parse(raw) as DatabaseSchema;
-      globalStore.__lua_azul_db = data;
-      return data;
-    } catch (e) {
-      console.error('Error reading from TMP_DB_FILE:', e);
-    }
-  }
-
-  // 2. Try reading from local data/db.json
-  if (fs.existsSync(LOCAL_DB_FILE)) {
-    try {
-      const raw = fs.readFileSync(LOCAL_DB_FILE, 'utf-8');
-      const data = JSON.parse(raw) as DatabaseSchema;
-      globalStore.__lua_azul_db = data;
-      return data;
-    } catch (e) {
-      console.error('Error reading LOCAL_DB_FILE:', e);
-    }
-  }
-
-  // 3. Fallback to initial data
-  const initial = getInitialData();
-  globalStore.__lua_azul_db = initial;
-  saveDb(initial);
-  return initial;
+function userToRow(user: User) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    password_hash: user.password,
+    role: user.role,
+    birth_date: user.birthDate ?? null,
+    avatar: user.avatar ?? null,
+    created_at: user.createdAt,
+  };
 }
 
-export function saveDb(data: DatabaseSchema): void {
-  globalStore.__lua_azul_db = data;
-  const jsonStr = JSON.stringify(data, null, 2);
+function rowToCourse(row: any): Course {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    shortDescription: row.short_description,
+    description: row.description,
+    price: Number(row.price),
+    isFree: row.is_free,
+    coverImage: row.cover_image,
+    category: row.category,
+    level: row.level,
+    published: row.published,
+    durationHours: Number(row.duration_hours),
+    certificateEnabled: row.certificate_enabled,
+    modules: (row.modules ?? []) as Module[],
+    resources: (row.resources ?? []) as Resource[],
+    quiz: (row.quiz ?? undefined) as Quiz | undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
 
-  // Write to /tmp in serverless/production environments (where it's writable)
-  if (IS_SERVERLESS) {
-    try {
-      fs.writeFileSync(TMP_DB_FILE, jsonStr, 'utf-8');
-    } catch (e) {
-      console.error('Error writing to TMP_DB_FILE:', e);
-    }
-  }
+function courseToRow(course: Course) {
+  return {
+    id: course.id,
+    slug: course.slug,
+    title: course.title,
+    short_description: course.shortDescription,
+    description: course.description,
+    price: course.price,
+    is_free: course.isFree,
+    cover_image: course.coverImage,
+    category: course.category,
+    level: course.level,
+    published: course.published,
+    duration_hours: course.durationHours,
+    certificate_enabled: course.certificateEnabled,
+    modules: course.modules ?? [],
+    resources: course.resources ?? [],
+    quiz: course.quiz ?? null,
+    created_at: course.createdAt,
+    updated_at: course.updatedAt,
+  };
+}
 
-  // Also write to local file system when possible (local dev)
-  try {
-    if (!fs.existsSync(LOCAL_DATA_DIR)) {
-      fs.mkdirSync(LOCAL_DATA_DIR, { recursive: true });
-    }
-    fs.writeFileSync(LOCAL_DB_FILE, jsonStr, 'utf-8');
-  } catch (error) {
-    // Expected on read-only serverless filesystems
-  }
+function rowToEnrollment(row: any): Enrollment {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    courseId: row.course_id,
+    enrolledAt: row.enrolled_at,
+    completedAt: row.completed_at ?? undefined,
+  };
+}
+
+function rowToProgress(row: any): LessonProgress {
+  return {
+    userId: row.user_id,
+    courseId: row.course_id,
+    lessonId: row.lesson_id,
+    completed: row.completed,
+    completedAt: row.completed_at ?? undefined,
+  };
+}
+
+function rowToQuizAttempt(row: any): QuizAttempt {
+  return {
+    id: row.id,
+    quizId: row.quiz_id,
+    courseId: row.course_id,
+    userId: row.user_id,
+    scorePercent: Number(row.score_percent),
+    passed: row.passed,
+    submittedAt: row.submitted_at,
+    userAnswers: row.user_answers ?? [],
+  };
+}
+
+function rowToCertificate(row: any): Certificate {
+  return {
+    id: row.id,
+    code: row.code,
+    userId: row.user_id,
+    userName: row.user_name,
+    courseId: row.course_id,
+    courseTitle: row.course_title,
+    issuedAt: row.issued_at,
+    passingScore: row.passing_score !== null ? Number(row.passing_score) : undefined,
+  };
+}
+
+function rowToOrder(row: any): Order {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    userEmail: row.user_email,
+    courseId: row.course_id,
+    courseTitle: row.course_title,
+    amount: Number(row.amount),
+    currency: row.currency,
+    mpPreferenceId: row.mp_preference_id,
+    mpPaymentId: row.mp_payment_id ?? undefined,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+function orderToRow(order: Order) {
+  return {
+    id: order.id,
+    user_id: order.userId,
+    user_email: order.userEmail,
+    course_id: order.courseId,
+    course_title: order.courseTitle,
+    amount: order.amount,
+    currency: order.currency,
+    mp_preference_id: order.mpPreferenceId,
+    mp_payment_id: order.mpPaymentId ?? null,
+    status: order.status,
+    created_at: order.createdAt,
+  };
+}
+
+function rowToBirthdayTemplate(row: any): BirthdayTemplate {
+  return {
+    subject: row.subject,
+    title: row.title,
+    message: row.message,
+    promoCode: row.promo_code,
+    discountPercent: Number(row.discount_percent),
+    validDays: row.valid_days,
+  };
+}
+
+function rowToBirthdayLog(row: any): BirthdayEmailLog {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    userName: row.user_name,
+    userEmail: row.user_email,
+    sentAt: row.sent_at,
+    promoCode: row.promo_code,
+    status: row.status,
+  };
 }
 
 export const db = {
   // USERS & ROLES
-  getUsers: () => getDb().users,
-  getUserById: (id: string) => getDb().users.find((u) => u.id === id),
-  getUserByEmail: (email: string) =>
-    getDb().users.find((u) => u.email.toLowerCase() === email.toLowerCase()),
-  saveUser: (user: User) => {
-    const data = getDb();
-    const idx = data.users.findIndex((u) => u.id === user.id);
-    if (idx >= 0) {
-      data.users[idx] = user;
-    } else {
-      data.users.push(user);
-    }
-    saveDb(data);
-    return user;
+  getUsers: async (): Promise<User[]> => {
+    const { data, error } = await sb.from('users').select('*');
+    if (error) throw error;
+    return (data ?? []).map(rowToUser);
   },
-  updateUserRole: (userId: string, newRole: UserRole) => {
-    const data = getDb();
-    const user = data.users.find((u) => u.id === userId);
-    if (user) {
-      user.role = newRole;
-      saveDb(data);
-      return user;
-    }
-    return null;
+  getUserById: async (id: string): Promise<User | undefined> => {
+    const { data, error } = await sb.from('users').select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    return data ? rowToUser(data) : undefined;
   },
-  deleteUser: (userId: string) => {
-    const data = getDb();
-    data.users = data.users.filter((u) => u.id !== userId);
-    data.enrollments = data.enrollments.filter((e) => e.userId !== userId);
-    data.progress = data.progress.filter((p) => p.userId !== userId);
-    data.certificates = data.certificates.filter((c) => c.userId !== userId);
-    saveDb(data);
+  getUserByEmail: async (email: string): Promise<User | undefined> => {
+    const { data, error } = await sb.from('users').select('*').ilike('email', email).maybeSingle();
+    if (error) throw error;
+    return data ? rowToUser(data) : undefined;
+  },
+  saveUser: async (user: User): Promise<User> => {
+    const { data, error } = await sb.from('users').upsert(userToRow(user)).select().single();
+    if (error) throw error;
+    return rowToUser(data);
+  },
+  updateUserRole: async (userId: string, newRole: UserRole): Promise<User | null> => {
+    const { data, error } = await sb
+      .from('users')
+      .update({ role: newRole })
+      .eq('id', userId)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToUser(data) : null;
+  },
+  deleteUser: async (userId: string): Promise<void> => {
+    const { error } = await sb.from('users').delete().eq('id', userId);
+    if (error) throw error;
   },
 
   // COURSES
-  getCourses: () => getDb().courses,
-  getCourseById: (id: string) => getDb().courses.find((c) => c.id === id),
-  getCourseBySlug: (slug: string) => getDb().courses.find((c) => c.slug === slug),
-  saveCourse: (course: Course) => {
-    const data = getDb();
-    const idx = data.courses.findIndex((c) => c.id === course.id);
-    if (idx >= 0) {
-      data.courses[idx] = { ...course, updatedAt: new Date().toISOString() };
-    } else {
-      data.courses.push({
-        ...course,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-    }
-    saveDb(data);
-    return course;
+  getCourses: async (): Promise<Course[]> => {
+    const { data, error } = await sb.from('courses').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(rowToCourse);
   },
-  deleteCourse: (id: string) => {
-    const data = getDb();
-    data.courses = data.courses.filter((c) => c.id !== id);
-    data.enrollments = data.enrollments.filter((e) => e.courseId !== id);
-    data.progress = data.progress.filter((p) => p.courseId !== id);
-    saveDb(data);
+  getCourseById: async (id: string): Promise<Course | undefined> => {
+    const { data, error } = await sb.from('courses').select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    return data ? rowToCourse(data) : undefined;
   },
-  saveCourseQuiz: (courseId: string, quiz: Quiz) => {
-    const data = getDb();
-    const course = data.courses.find((c) => c.id === courseId);
-    if (course) {
-      course.quiz = quiz;
-      course.updatedAt = new Date().toISOString();
-      saveDb(data);
-      return course;
-    }
-    return null;
+  getCourseBySlug: async (slug: string): Promise<Course | undefined> => {
+    const { data, error } = await sb.from('courses').select('*').eq('slug', slug).maybeSingle();
+    if (error) throw error;
+    return data ? rowToCourse(data) : undefined;
   },
-  deleteCourseQuiz: (courseId: string) => {
-    const data = getDb();
-    const course = data.courses.find((c) => c.id === courseId);
-    if (course) {
-      course.quiz = undefined;
-      course.updatedAt = new Date().toISOString();
-      saveDb(data);
-      return course;
-    }
-    return null;
+  saveCourse: async (course: Course): Promise<Course> => {
+    const { data, error } = await sb.from('courses').upsert(courseToRow(course)).select().single();
+    if (error) throw error;
+    return rowToCourse(data);
+  },
+  deleteCourse: async (id: string): Promise<void> => {
+    const { error } = await sb.from('courses').delete().eq('id', id);
+    if (error) throw error;
+  },
+  saveCourseQuiz: async (courseId: string, quiz: Quiz): Promise<Course | null> => {
+    const { data, error } = await sb
+      .from('courses')
+      .update({ quiz, updated_at: new Date().toISOString() })
+      .eq('id', courseId)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToCourse(data) : null;
+  },
+  deleteCourseQuiz: async (courseId: string): Promise<Course | null> => {
+    const { data, error } = await sb
+      .from('courses')
+      .update({ quiz: null, updated_at: new Date().toISOString() })
+      .eq('id', courseId)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToCourse(data) : null;
   },
 
   // ENROLLMENTS
-  getEnrollments: () => getDb().enrollments,
-  getUserEnrollments: (userId: string) =>
-    getDb().enrollments.filter((e) => e.userId === userId),
-  isEnrolled: (userId: string, courseId: string) =>
-    getDb().enrollments.some((e) => e.userId === userId && e.courseId === courseId),
-  enroll: (userId: string, courseId: string) => {
-    const data = getDb();
-    if (!data.enrollments.some((e) => e.userId === userId && e.courseId === courseId)) {
-      const newEnrollment: Enrollment = {
-        id: `enr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        userId,
-        courseId,
-        enrolledAt: new Date().toISOString(),
-      };
-      data.enrollments.push(newEnrollment);
-      saveDb(data);
-      return newEnrollment;
-    }
-    return data.enrollments.find((e) => e.userId === userId && e.courseId === courseId)!;
+  getEnrollments: async (): Promise<Enrollment[]> => {
+    const { data, error } = await sb.from('enrollments').select('*');
+    if (error) throw error;
+    return (data ?? []).map(rowToEnrollment);
+  },
+  getUserEnrollments: async (userId: string): Promise<Enrollment[]> => {
+    const { data, error } = await sb.from('enrollments').select('*').eq('user_id', userId);
+    if (error) throw error;
+    return (data ?? []).map(rowToEnrollment);
+  },
+  isEnrolled: async (userId: string, courseId: string): Promise<boolean> => {
+    const { data, error } = await sb
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .maybeSingle();
+    if (error) throw error;
+    return !!data;
+  },
+  enroll: async (userId: string, courseId: string): Promise<Enrollment> => {
+    const { data: existing, error: findErr } = await sb
+      .from('enrollments')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .maybeSingle();
+    if (findErr) throw findErr;
+    if (existing) return rowToEnrollment(existing);
+
+    const newEnrollment = {
+      id: `enr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      user_id: userId,
+      course_id: courseId,
+      enrolled_at: new Date().toISOString(),
+    };
+    const { data, error } = await sb.from('enrollments').insert(newEnrollment).select().single();
+    if (error) throw error;
+    return rowToEnrollment(data);
   },
 
   // PROGRESS
-  getProgress: (userId: string, courseId: string) =>
-    getDb().progress.filter((p) => p.userId === userId && p.courseId === courseId),
-  toggleLessonProgress: (userId: string, courseId: string, lessonId: string, completed?: boolean) => {
-    const data = getDb();
-    const existingIdx = data.progress.findIndex(
-      (p) => p.userId === userId && p.lessonId === lessonId
-    );
-    const isComp = completed !== undefined ? completed : (existingIdx >= 0 ? !data.progress[existingIdx].completed : true);
-    
-    if (existingIdx >= 0) {
-      data.progress[existingIdx].completed = isComp;
-      data.progress[existingIdx].completedAt = isComp ? new Date().toISOString() : undefined;
-    } else {
-      data.progress.push({
-        userId,
-        courseId,
-        lessonId,
-        completed: isComp,
-        completedAt: isComp ? new Date().toISOString() : undefined,
-      });
-    }
-    saveDb(data);
+  getProgress: async (userId: string, courseId: string): Promise<LessonProgress[]> => {
+    const { data, error } = await sb
+      .from('lesson_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('course_id', courseId);
+    if (error) throw error;
+    return (data ?? []).map(rowToProgress);
+  },
+  toggleLessonProgress: async (
+    userId: string,
+    courseId: string,
+    lessonId: string,
+    completed?: boolean
+  ): Promise<boolean> => {
+    const { data: existing, error: findErr } = await sb
+      .from('lesson_progress')
+      .select('completed')
+      .eq('user_id', userId)
+      .eq('lesson_id', lessonId)
+      .maybeSingle();
+    if (findErr) throw findErr;
+
+    const isComp = completed !== undefined ? completed : existing ? !existing.completed : true;
+
+    const { error } = await sb.from('lesson_progress').upsert({
+      user_id: userId,
+      course_id: courseId,
+      lesson_id: lessonId,
+      completed: isComp,
+      completed_at: isComp ? new Date().toISOString() : null,
+    });
+    if (error) throw error;
     return isComp;
   },
-  getCourseProgressPercent: (userId: string, courseId: string): number => {
-    const course = getDb().courses.find((c) => c.id === courseId);
+  getCourseProgressPercent: async (userId: string, courseId: string): Promise<number> => {
+    const course = await db.getCourseById(courseId);
     if (!course) return 0;
-    
+
     let totalLessons = 0;
     course.modules.forEach((m) => {
       totalLessons += m.lessons.length;
     });
     if (totalLessons === 0) return 100;
 
-    const completed = getDb().progress.filter(
-      (p) => p.userId === userId && p.courseId === courseId && p.completed
-    ).length;
+    const { count, error } = await sb
+      .from('lesson_progress')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .eq('completed', true);
+    if (error) throw error;
 
-    return Math.min(100, Math.round((completed / totalLessons) * 100));
+    return Math.min(100, Math.round(((count ?? 0) / totalLessons) * 100));
   },
 
   // QUIZZES
-  getQuizAttempts: (userId: string, quizId: string) =>
-    getDb().quizAttempts.filter((a) => a.userId === userId && a.quizId === quizId),
-  saveQuizAttempt: (attempt: Omit<QuizAttempt, 'id' | 'submittedAt'>) => {
-    const data = getDb();
-    const newAttempt: QuizAttempt = {
-      ...attempt,
+  getQuizAttempts: async (userId: string, quizId: string): Promise<QuizAttempt[]> => {
+    const { data, error } = await sb
+      .from('quiz_attempts')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('quiz_id', quizId);
+    if (error) throw error;
+    return (data ?? []).map(rowToQuizAttempt);
+  },
+  saveQuizAttempt: async (attempt: Omit<QuizAttempt, 'id' | 'submittedAt'>): Promise<QuizAttempt> => {
+    const row = {
       id: `att_${Date.now()}`,
-      submittedAt: new Date().toISOString(),
+      quiz_id: attempt.quizId,
+      course_id: attempt.courseId,
+      user_id: attempt.userId,
+      score_percent: attempt.scorePercent,
+      passed: attempt.passed,
+      user_answers: attempt.userAnswers,
+      submitted_at: new Date().toISOString(),
     };
-    data.quizAttempts.push(newAttempt);
-    saveDb(data);
-    return newAttempt;
+    const { data, error } = await sb.from('quiz_attempts').insert(row).select().single();
+    if (error) throw error;
+    return rowToQuizAttempt(data);
   },
 
   // CERTIFICATES
-  getCertificates: () => getDb().certificates,
-  getUserCertificates: (userId: string) =>
-    getDb().certificates.filter((c) => c.userId === userId),
-  getCertificateByCode: (code: string) =>
-    getDb().certificates.find((c) => c.code.toUpperCase() === code.toUpperCase().trim()),
-  getCertificateForCourse: (userId: string, courseId: string) =>
-    getDb().certificates.find((c) => c.userId === userId && c.courseId === courseId),
-  issueCertificate: (userId: string, courseId: string, passingScore = 100) => {
-    const data = getDb();
-    const existing = data.certificates.find((c) => c.userId === userId && c.courseId === courseId);
+  getCertificates: async (): Promise<Certificate[]> => {
+    const { data, error } = await sb.from('certificates').select('*');
+    if (error) throw error;
+    return (data ?? []).map(rowToCertificate);
+  },
+  getUserCertificates: async (userId: string): Promise<Certificate[]> => {
+    const { data, error } = await sb.from('certificates').select('*').eq('user_id', userId);
+    if (error) throw error;
+    return (data ?? []).map(rowToCertificate);
+  },
+  getCertificateByCode: async (code: string): Promise<Certificate | undefined> => {
+    const { data, error } = await sb
+      .from('certificates')
+      .select('*')
+      .ilike('code', code.trim())
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToCertificate(data) : undefined;
+  },
+  getCertificateForCourse: async (userId: string, courseId: string): Promise<Certificate | undefined> => {
+    const { data, error } = await sb
+      .from('certificates')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToCertificate(data) : undefined;
+  },
+  issueCertificate: async (userId: string, courseId: string, passingScore = 100): Promise<Certificate> => {
+    const existing = await db.getCertificateForCourse(userId, courseId);
     if (existing) return existing;
 
-    const user = data.users.find((u) => u.id === userId);
-    const course = data.courses.find((c) => c.id === courseId);
-    if (!user || !course) throw new Error('Usuario o Curso no encontrado');
+    const user = must(await db.getUserById(userId), 'usuario');
+    const course = must(await db.getCourseById(courseId), 'curso');
 
     const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
     const year = new Date().getFullYear();
     const code = `LUA-${year}-${randomPart}`;
 
-    const newCert: Certificate = {
+    const row = {
       id: `cert_${Date.now()}`,
       code,
-      userId,
-      userName: user.name,
-      courseId,
-      courseTitle: course.title,
-      issuedAt: new Date().toISOString(),
-      passingScore,
+      user_id: userId,
+      user_name: user.name,
+      course_id: courseId,
+      course_title: course.title,
+      issued_at: new Date().toISOString(),
+      passing_score: passingScore,
     };
-    data.certificates.push(newCert);
+    const { data, error } = await sb.from('certificates').insert(row).select().single();
+    if (error) throw error;
 
-    const enr = data.enrollments.find((e) => e.userId === userId && e.courseId === courseId);
-    if (enr) {
-      enr.completedAt = new Date().toISOString();
-    }
+    await sb
+      .from('enrollments')
+      .update({ completed_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('course_id', courseId);
 
-    saveDb(data);
-    return newCert;
+    return rowToCertificate(data);
   },
 
   // ORDERS
-  getOrders: () => getDb().orders,
-  saveOrder: (order: Order) => {
-    const data = getDb();
-    const idx = data.orders.findIndex((o) => o.id === order.id);
-    if (idx >= 0) {
-      data.orders[idx] = order;
-    } else {
-      data.orders.push(order);
-    }
-    saveDb(data);
-    return order;
+  getOrders: async (): Promise<Order[]> => {
+    const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(rowToOrder);
   },
-  getOrderByPreferenceId: (prefId: string) =>
-    getDb().orders.find((o) => o.mpPreferenceId === prefId),
+  saveOrder: async (order: Order): Promise<Order> => {
+    const { data, error } = await sb.from('orders').upsert(orderToRow(order)).select().single();
+    if (error) throw error;
+    return rowToOrder(data);
+  },
+  getOrderByPreferenceId: async (prefId: string): Promise<Order | undefined> => {
+    const { data, error } = await sb
+      .from('orders')
+      .select('*')
+      .eq('mp_preference_id', prefId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToOrder(data) : undefined;
+  },
 
   // BIRTHDAYS
-  getBirthdayTemplate: () => getDb().birthdayTemplate,
-  saveBirthdayTemplate: (template: BirthdayTemplate) => {
-    const data = getDb();
-    data.birthdayTemplate = template;
-    saveDb(data);
-    return template;
+  getBirthdayTemplate: async (): Promise<BirthdayTemplate> => {
+    const { data, error } = await sb.from('birthday_template').select('*').eq('id', true).single();
+    if (error) throw error;
+    return rowToBirthdayTemplate(data);
   },
-  getBirthdayLogs: () => getDb().birthdayLogs,
-  logBirthdayEmail: (log: Omit<BirthdayEmailLog, 'id' | 'sentAt'>) => {
-    const data = getDb();
-    const newLog: BirthdayEmailLog = {
-      ...log,
+  saveBirthdayTemplate: async (template: BirthdayTemplate): Promise<BirthdayTemplate> => {
+    const { data, error } = await sb
+      .from('birthday_template')
+      .update({
+        subject: template.subject,
+        title: template.title,
+        message: template.message,
+        promo_code: template.promoCode,
+        discount_percent: template.discountPercent,
+        valid_days: template.validDays,
+      })
+      .eq('id', true)
+      .select()
+      .single();
+    if (error) throw error;
+    return rowToBirthdayTemplate(data);
+  },
+  getBirthdayLogs: async (): Promise<BirthdayEmailLog[]> => {
+    const { data, error } = await sb.from('birthday_logs').select('*').order('sent_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(rowToBirthdayLog);
+  },
+  logBirthdayEmail: async (log: Omit<BirthdayEmailLog, 'id' | 'sentAt'>): Promise<BirthdayEmailLog> => {
+    const row = {
       id: `blog_${Date.now()}`,
-      sentAt: new Date().toISOString(),
+      user_id: log.userId,
+      user_name: log.userName,
+      user_email: log.userEmail,
+      sent_at: new Date().toISOString(),
+      promo_code: log.promoCode,
+      status: log.status,
     };
-    data.birthdayLogs.push(newLog);
-    saveDb(data);
-    return newLog;
-  },
-
-  resetWithInitialData: () => {
-    const initial = getInitialData();
-    saveDb(initial);
-    return initial;
+    const { data, error } = await sb.from('birthday_logs').insert(row).select().single();
+    if (error) throw error;
+    return rowToBirthdayLog(data);
   },
 };
 

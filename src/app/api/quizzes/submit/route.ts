@@ -13,11 +13,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!requireSelfOrAdmin(req, userId)) {
+    if (!(await requireSelfOrAdmin(req, userId))) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    const course = db.getCourseById(courseId);
+    const course = await db.getCourseById(courseId);
     if (!course || !course.quiz || course.quiz.id !== quizId) {
       return NextResponse.json({ error: 'Examen no encontrado' }, { status: 404 });
     }
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const passed = scorePercent >= quiz.passingScorePercent;
 
     // Save attempt
-    const attempt = db.saveQuizAttempt({
+    const attempt = await db.saveQuizAttempt({
       quizId,
       courseId,
       userId,
@@ -52,13 +52,13 @@ export async function POST(req: NextRequest) {
     });
 
     // Check certificate issuance
-    let certificate = db.getCertificateForCourse(userId, courseId);
+    let certificate = await db.getCertificateForCourse(userId, courseId);
     let certificateUnlocked = false;
 
     if (passed && course.certificateEnabled && !certificate) {
-      const progressPercent = db.getCourseProgressPercent(userId, courseId);
+      const progressPercent = await db.getCourseProgressPercent(userId, courseId);
       if (progressPercent === 100) {
-        certificate = db.issueCertificate(userId, courseId, scorePercent);
+        certificate = await db.issueCertificate(userId, courseId, scorePercent);
         certificateUnlocked = true;
       }
     }
