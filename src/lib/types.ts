@@ -145,6 +145,17 @@ export interface BirthdayTemplate {
   validDays: number;
 }
 
+export interface Testimonial {
+  id: string;
+  userId?: string;
+  userName: string;
+  courseTitle?: string;
+  message: string;
+  rating: number;
+  status: 'PENDING' | 'APPROVED';
+  createdAt: string;
+}
+
 export interface SiteSettings {
   footerDescription: string;
   certificateTitle: string;

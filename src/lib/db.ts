@@ -14,6 +14,7 @@ import {
   QuizAttempt,
   Quiz,
   SiteSettings,
+  Testimonial,
 } from './types';
 
 const sb = createAdminClient();
@@ -185,6 +186,19 @@ function rowToBirthdayTemplate(row: any): BirthdayTemplate {
     promoCode: row.promo_code,
     discountPercent: Number(row.discount_percent),
     validDays: row.valid_days,
+  };
+}
+
+function rowToTestimonial(row: any): Testimonial {
+  return {
+    id: row.id,
+    userId: row.user_id || undefined,
+    userName: row.user_name,
+    courseTitle: row.course_title || undefined,
+    message: row.message,
+    rating: row.rating,
+    status: row.status,
+    createdAt: row.created_at,
   };
 }
 
@@ -608,6 +622,51 @@ export const db = {
       certificateSignerName: data.certificate_signer_name,
       certificateSignerTitle: data.certificate_signer_title,
     };
+  },
+
+  // TESTIMONIALS
+  getApprovedTestimonials: async (): Promise<Testimonial[]> => {
+    const { data, error } = await sb
+      .from('testimonials')
+      .select('*')
+      .eq('status', 'APPROVED')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(rowToTestimonial);
+  },
+  getAllTestimonials: async (): Promise<Testimonial[]> => {
+    const { data, error } = await sb.from('testimonials').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(rowToTestimonial);
+  },
+  createTestimonial: async (t: Omit<Testimonial, 'id' | 'createdAt' | 'status'>): Promise<Testimonial> => {
+    const row = {
+      id: `test_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      user_id: t.userId || null,
+      user_name: t.userName,
+      course_title: t.courseTitle || null,
+      message: t.message,
+      rating: t.rating,
+      status: 'PENDING',
+      created_at: new Date().toISOString(),
+    };
+    const { data, error } = await sb.from('testimonials').insert(row).select().single();
+    if (error) throw error;
+    return rowToTestimonial(data);
+  },
+  setTestimonialStatus: async (id: string, status: 'PENDING' | 'APPROVED'): Promise<Testimonial | null> => {
+    const { data, error } = await sb
+      .from('testimonials')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToTestimonial(data) : null;
+  },
+  deleteTestimonial: async (id: string): Promise<void> => {
+    const { error } = await sb.from('testimonials').delete().eq('id', id);
+    if (error) throw error;
   },
 };
 

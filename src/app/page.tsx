@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { Course } from '@/lib/types';
+import { Course, Testimonial } from '@/lib/types';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import LuaAzulLogo, { StarIcon } from '@/components/LuaAzulLogo';
 import {
   BookOpen,
@@ -16,6 +17,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Sparkles,
+  Star,
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -23,6 +25,7 @@ export default function HomePage() {
   const [courses, setCourses] = useState<(Course & { isEnrolled?: boolean; progressPercent?: number })[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [loading, setLoading] = useState(true);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   useEffect(() => {
     fetch(`/api/courses${user ? `?userId=${user.id}` : ''}`)
@@ -35,6 +38,13 @@ export default function HomePage() {
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, [user]);
+
+  useEffect(() => {
+    fetch('/api/testimonials')
+      .then((res) => res.json())
+      .then((data) => setTestimonials(data.testimonials || []))
+      .catch((err) => console.error(err));
+  }, []);
 
   const categories = ['Todos', 'Terapia Floral', 'Formación Energética', 'Simbología y Runas'];
 
@@ -286,6 +296,49 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* TESTIMONIOS SECTION */}
+      {testimonials.length > 0 && (
+        <section id="testimonios" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-verde">
+              <StarIcon className="w-3 h-3 text-dorado" />
+              <span>Lo que dicen nuestras alumnas</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-azul-dark mt-1">
+              Testimonios
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.slice(0, 6).map((t) => (
+              <div
+                key={t.id}
+                className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-3 flex flex-col"
+              >
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${i < t.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
+                    />
+                  ))}
+                </div>
+                <div
+                  className="text-sm text-slate-600 leading-relaxed flex-1"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(t.message) }}
+                />
+                <div className="pt-2 border-t border-slate-100">
+                  <strong className="text-sm text-azul-dark font-serif">{t.userName}</strong>
+                  {t.courseTitle && (
+                    <p className="text-[11px] text-slate-400">{t.courseTitle}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
     </div>
   );

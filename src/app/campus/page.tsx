@@ -16,6 +16,7 @@ import {
   Cake,
   FileDown,
   Gift,
+  MessageSquareHeart,
 } from 'lucide-react';
 
 export default function CampusDashboardPage() {
@@ -281,6 +282,24 @@ export default function CampusDashboardPage() {
           </div>
         </section>
       )}
+
+      <div className="bg-lua-50 border border-lua-200 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white text-lua-600 flex items-center justify-center flex-shrink-0">
+            <MessageSquareHeart className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-serif font-bold text-sm text-slate-900">¿Cómo fue tu experiencia?</h3>
+            <p className="text-xs text-slate-500">Contanos tu testimonio y ayudanos a llegar a más personas.</p>
+          </div>
+        </div>
+        <Link
+          href="/campus/testimonios/enviar"
+          className="px-4 py-2 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold text-xs shadow-sm transition-all whitespace-nowrap"
+        >
+          Dejar mi Testimonio
+        </Link>
+      </div>
 
     </div>
   );

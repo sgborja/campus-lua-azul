@@ -15,6 +15,7 @@ import {
   PlusCircle,
   ChevronRight,
   Settings,
+  MessageSquareHeart,
 } from 'lucide-react';
 
 const ADMIN_ROLES = ['ADMIN', 'PROFESOR', 'EDITOR'];
@@ -44,6 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Área de Exámenes', href: '/admin/examenes', icon: Award },
     { label: 'Alumnos y Progreso', href: '/admin/alumnos', icon: Users },
     { label: 'Mails de Cumpleaños', href: '/admin/cumpleanos', icon: Cake },
+    { label: 'Testimonios', href: '/admin/testimonios', icon: MessageSquareHeart },
     { label: 'Pedidos Mercado Pago', href: '/admin/pedidos', icon: CreditCard },
     { label: 'Ajustes del Sitio', href: '/admin/ajustes', icon: Settings },
   ];
