@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  KeyRound,
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -157,6 +158,14 @@ export default function Navbar() {
                         <Award className="w-3.5 h-3.5 text-slate-500" />
                         Mis Certificados
                       </Link>
+                      <Link
+                        href="/cuenta"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                      >
+                        <KeyRound className="w-3.5 h-3.5 text-slate-500" />
+                        Mi Cuenta
+                      </Link>
                       <button
                         onClick={() => {
                           logout();
@@ -243,6 +252,14 @@ export default function Navbar() {
           {user ? (
             <div className="pt-4 border-t border-slate-200 space-y-2">
               <div className="text-xs font-semibold text-slate-500">Sesión: {user.name} ({role === 'ADMIN' ? 'Admin' : 'Alumno'})</div>
+              <Link
+                href="/cuenta"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <KeyRound className="w-4 h-4 text-slate-500" />
+                Mi Cuenta
+              </Link>
               <button
                 onClick={() => {
                   logout();
