@@ -133,6 +133,19 @@ export interface Order {
   mpPreferenceId: string;
   mpPaymentId?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  couponCode?: string;
+  createdAt: string;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discountPercent: number; // 100 = curso gratis
+  courseId?: string; // vacío = aplica a todos los cursos
+  maxUses?: number; // vacío = ilimitado
+  usedCount: number;
+  expiresAt?: string;
+  active: boolean;
   createdAt: string;
 }
 
@@ -158,10 +171,16 @@ export interface Testimonial {
 
 export interface SiteSettings {
   footerDescription: string;
+  footerTagline: string;
+  footerLocation: string;
   certificateTitle: string;
   certificateStatement: string;
   certificateSignerName: string;
   certificateSignerTitle: string;
+  heroBadge: string;
+  heroTitleMain: string;
+  heroTitleAccent: string;
+  heroSubtitle: string;
 }
 
 export interface BirthdayEmailLog {

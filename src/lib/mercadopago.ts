@@ -24,11 +24,16 @@ export async function createCoursePreference({
   course,
   user,
   baseUrl,
+  overridePrice,
+  couponCode,
 }: {
   course: Course;
   user: User;
   baseUrl: string;
+  overridePrice?: number;
+  couponCode?: string;
 }) {
+  const price = overridePrice !== undefined ? overridePrice : course.price;
   if (!MP_ACCESS_TOKEN) {
     // If not configured, provide simulated response for local testing
     const simulatedPrefId = `pref_sim_${Date.now()}`;
@@ -56,7 +61,7 @@ export async function createCoursePreference({
             title: course.title,
             description: course.shortDescription,
             picture_url: course.coverImage,
-            unit_price: course.price,
+            unit_price: price,
             quantity: 1,
             currency_id: 'ARS',
           },
@@ -75,6 +80,7 @@ export async function createCoursePreference({
           course_id: course.id,
           user_id: user.id,
           user_email: user.email,
+          coupon_code: couponCode || undefined,
         },
       },
     });

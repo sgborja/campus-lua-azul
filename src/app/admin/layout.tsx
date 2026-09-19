@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Settings,
   MessageSquareHeart,
+  Ticket,
 } from 'lucide-react';
 
 const ADMIN_ROLES = ['ADMIN', 'PROFESOR', 'EDITOR'];
@@ -49,6 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Mails de Cumpleaños', href: '/admin/cumpleanos', icon: Cake, superAdminOnly: true },
     { label: 'Testimonios', href: '/admin/testimonios', icon: MessageSquareHeart, superAdminOnly: false },
     { label: 'Pedidos Mercado Pago', href: '/admin/pedidos', icon: CreditCard, superAdminOnly: true },
+    { label: 'Cupones', href: '/admin/cupones', icon: Ticket, superAdminOnly: true },
     { label: 'Ajustes del Sitio', href: '/admin/ajustes', icon: Settings, superAdminOnly: true },
   ].filter((item) => !item.superAdminOnly || isSuperAdmin);
 

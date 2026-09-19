@@ -32,6 +32,11 @@ export default function CourseDetailPage() {
   const [showSimulatedModal, setShowSimulatedModal] = useState(false);
   const [simulatedData, setSimulatedData] = useState<{ prefId: string; initPoint: string } | null>(null);
 
+  const [couponInput, setCouponInput] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [checkingCoupon, setCheckingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountPercent: number; finalPrice: number } | null>(null);
+
   const slug = params.slug as string;
 
   useEffect(() => {
@@ -48,6 +53,31 @@ export default function CourseDetailPage() {
       .finally(() => setLoading(false));
   }, [slug, user]);
 
+  const handleApplyCoupon = async () => {
+    if (!course || !couponInput.trim()) return;
+    setCheckingCoupon(true);
+    setCouponError('');
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput.trim(), courseId: course.id }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAppliedCoupon({ code: couponInput.trim().toUpperCase(), discountPercent: data.discountPercent, finalPrice: data.finalPrice });
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(data.error || 'Cupón inválido');
+      }
+    } catch (e) {
+      console.error(e);
+      setCouponError('Error al validar el cupón');
+    } finally {
+      setCheckingCoupon(false);
+    }
+  };
+
   const handleEnrollOrCheckout = async () => {
     if (!course) return;
     if (!user) {
@@ -63,6 +93,7 @@ export default function CourseDetailPage() {
         body: JSON.stringify({
           courseId: course.id,
           userId: user.id,
+          couponCode: appliedCoupon?.code,
         }),
       });
       const data = await res.json();
@@ -203,9 +234,20 @@ export default function CourseDetailPage() {
                     <span className="text-3xl font-extrabold text-slate-900">Consultar</span>
                   ) : (
                     <div className="space-y-0.5">
-                      <span className="text-3xl font-extrabold text-slate-900">
-                        ${course.price.toLocaleString('es-AR')} <span className="text-sm font-semibold text-slate-500">ARS</span>
-                      </span>
+                      {appliedCoupon ? (
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-semibold text-slate-400 line-through">
+                            ${course.price.toLocaleString('es-AR')}
+                          </span>
+                          <span className="text-3xl font-extrabold text-emerald-600">
+                            {appliedCoupon.finalPrice === 0 ? 'GRATIS' : `$${appliedCoupon.finalPrice.toLocaleString('es-AR')}`}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-3xl font-extrabold text-slate-900">
+                          ${course.price.toLocaleString('es-AR')} <span className="text-sm font-semibold text-slate-500">ARS</span>
+                        </span>
+                      )}
                       <p className="text-[11px] text-slate-500 flex items-center gap-1">
                         <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
                         Hasta 12 cuotas con Mercado Pago
@@ -214,6 +256,44 @@ export default function CourseDetailPage() {
                   )}
                 </div>
               </div>
+
+              {!isEnrolled && !course.isFree && !course.priceOnRequest && (
+                <div className="space-y-1.5">
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs">
+                      <span className="text-emerald-800 font-semibold">
+                        Cupón <code className="font-mono">{appliedCoupon.code}</code> aplicado ({appliedCoupon.discountPercent}% off)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => { setAppliedCoupon(null); setCouponInput(''); }}
+                        className="text-emerald-700 hover:underline font-semibold"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                        placeholder="¿Tenés un cupón?"
+                        className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono uppercase"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={checkingCoupon || !couponInput.trim()}
+                        className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {checkingCoupon ? '...' : 'Aplicar'}
+                      </button>
+                    </div>
+                  )}
+                  {couponError && <p className="text-[11px] text-red-600">{couponError}</p>}
+                </div>
+              )}
 
               {isEnrolled ? (
                 <div className="space-y-3">
@@ -253,7 +333,7 @@ export default function CourseDetailPage() {
                   >
                     {processingPayment ? (
                       'Procesando...'
-                    ) : course.isFree ? (
+                    ) : course.isFree || appliedCoupon?.finalPrice === 0 ? (
                       'Inscribirme Gratis Ahora'
                     ) : (
                       <>

@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { createCoursePreference } from '@/lib/mercadopago';
 import { requireSelfOrAdmin } from '@/lib/auth';
+import { validateCouponForCourse } from '@/lib/coupons';
 
 export async function POST(req: NextRequest) {
   try {
-    const { courseId, userId } = await req.json();
+    const { courseId, userId, couponCode } = await req.json();
 
     if (!(await requireSelfOrAdmin(req, userId))) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
@@ -27,6 +28,32 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Un cupón se revalida siempre en el servidor: nunca hay que confiar en
+    // un precio con descuento que haya calculado el navegador.
+    let finalPrice = course.price;
+    let validCouponCode: string | undefined;
+    if (couponCode) {
+      const check = await validateCouponForCourse(couponCode, course);
+      if (!check.valid) {
+        return NextResponse.json({ error: check.error || 'Cupón inválido' }, { status: 400 });
+      }
+      finalPrice = check.finalPrice!;
+      validCouponCode = check.coupon!.code;
+    }
+
+    if (finalPrice <= 0) {
+      // Cupón de 100%: se inscribe directo, sin pasar por Mercado Pago.
+      await db.enroll(user.id, course.id);
+      if (validCouponCode) {
+        const coupon = await db.getCouponByCode(validCouponCode);
+        if (coupon) await db.incrementCouponUsage(coupon.id);
+      }
+      return NextResponse.json({
+        isFree: true,
+        redirectUrl: `/campus/curso/${course.slug}`,
+      });
+    }
+
     const host = req.headers.get('host') || 'localhost:3000';
     const protocol = host.startsWith('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
@@ -35,6 +62,8 @@ export async function POST(req: NextRequest) {
       course,
       user,
       baseUrl,
+      overridePrice: finalPrice,
+      couponCode: validCouponCode,
     });
 
     // Save pending order
@@ -44,10 +73,11 @@ export async function POST(req: NextRequest) {
       userEmail: user.email,
       courseId: course.id,
       courseTitle: course.title,
-      amount: course.price,
+      amount: finalPrice,
       currency: 'ARS',
       mpPreferenceId: preferenceResult.id || `pref_${Date.now()}`,
       status: 'PENDING',
+      couponCode: validCouponCode,
       createdAt: new Date().toISOString(),
     });
 

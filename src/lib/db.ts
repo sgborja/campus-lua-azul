@@ -15,6 +15,7 @@ import {
   Quiz,
   SiteSettings,
   Testimonial,
+  Coupon,
 } from './types';
 
 const sb = createAdminClient();
@@ -158,6 +159,7 @@ function rowToOrder(row: any): Order {
     mpPreferenceId: row.mp_preference_id,
     mpPaymentId: row.mp_payment_id ?? undefined,
     status: row.status,
+    couponCode: row.coupon_code ?? undefined,
     createdAt: row.created_at,
   };
 }
@@ -174,6 +176,7 @@ function orderToRow(order: Order) {
     mp_preference_id: order.mpPreferenceId,
     mp_payment_id: order.mpPaymentId ?? null,
     status: order.status,
+    coupon_code: order.couponCode ?? null,
     created_at: order.createdAt,
   };
 }
@@ -186,6 +189,20 @@ function rowToBirthdayTemplate(row: any): BirthdayTemplate {
     promoCode: row.promo_code,
     discountPercent: Number(row.discount_percent),
     validDays: row.valid_days,
+  };
+}
+
+function rowToCoupon(row: any): Coupon {
+  return {
+    id: row.id,
+    code: row.code,
+    discountPercent: Number(row.discount_percent),
+    courseId: row.course_id ?? undefined,
+    maxUses: row.max_uses ?? undefined,
+    usedCount: row.used_count,
+    expiresAt: row.expires_at ?? undefined,
+    active: row.active,
+    createdAt: row.created_at,
   };
 }
 
@@ -595,10 +612,18 @@ export const db = {
     if (error) throw error;
     return {
       footerDescription: data.footer_description,
+      footerTagline: data.footer_tagline ?? 'Hacer las cosas con cuidado y que se note.',
+      footerLocation: data.footer_location ?? '',
       certificateTitle: data.certificate_title,
       certificateStatement: data.certificate_statement,
       certificateSignerName: data.certificate_signer_name,
       certificateSignerTitle: data.certificate_signer_title,
+      heroBadge: data.hero_badge ?? 'Seminarios Lua Azul · Línea Formación',
+      heroTitleMain: data.hero_title_main ?? 'Formación con raíz botánica',
+      heroTitleAccent: data.hero_title_accent ?? 'y profundidad simbólica',
+      heroSubtitle:
+        data.hero_subtitle ??
+        'Un camino de estudio serio en terapias florales, energéticas y rúnicas. Para leerte a vos y acompañar a otros, con el tiempo y el cuidado que cada proceso merece.',
     };
   },
   saveSiteSettings: async (settings: SiteSettings): Promise<SiteSettings> => {
@@ -606,10 +631,16 @@ export const db = {
       .from('site_settings')
       .update({
         footer_description: settings.footerDescription,
+        footer_tagline: settings.footerTagline,
+        footer_location: settings.footerLocation,
         certificate_title: settings.certificateTitle,
         certificate_statement: settings.certificateStatement,
         certificate_signer_name: settings.certificateSignerName,
         certificate_signer_title: settings.certificateSignerTitle,
+        hero_badge: settings.heroBadge,
+        hero_title_main: settings.heroTitleMain,
+        hero_title_accent: settings.heroTitleAccent,
+        hero_subtitle: settings.heroSubtitle,
       })
       .eq('id', true)
       .select()
@@ -617,10 +648,16 @@ export const db = {
     if (error) throw error;
     return {
       footerDescription: data.footer_description,
+      footerTagline: data.footer_tagline,
+      footerLocation: data.footer_location,
       certificateTitle: data.certificate_title,
       certificateStatement: data.certificate_statement,
       certificateSignerName: data.certificate_signer_name,
       certificateSignerTitle: data.certificate_signer_title,
+      heroBadge: data.hero_badge,
+      heroTitleMain: data.hero_title_main,
+      heroTitleAccent: data.hero_title_accent,
+      heroSubtitle: data.hero_subtitle,
     };
   },
 
@@ -666,6 +703,53 @@ export const db = {
   },
   deleteTestimonial: async (id: string): Promise<void> => {
     const { error } = await sb.from('testimonials').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  // COUPONS
+  getCoupons: async (): Promise<Coupon[]> => {
+    const { data, error } = await sb.from('coupons').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(rowToCoupon);
+  },
+  getCouponByCode: async (code: string): Promise<Coupon | undefined> => {
+    const { data, error } = await sb
+      .from('coupons')
+      .select('*')
+      .ilike('code', code)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToCoupon(data) : undefined;
+  },
+  createCoupon: async (c: Omit<Coupon, 'id' | 'usedCount' | 'createdAt'>): Promise<Coupon> => {
+    const row = {
+      id: `cpn_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      code: c.code.toUpperCase(),
+      discount_percent: c.discountPercent,
+      course_id: c.courseId || null,
+      max_uses: c.maxUses ?? null,
+      used_count: 0,
+      expires_at: c.expiresAt || null,
+      active: c.active,
+      created_at: new Date().toISOString(),
+    };
+    const { data, error } = await sb.from('coupons').insert(row).select().single();
+    if (error) throw error;
+    return rowToCoupon(data);
+  },
+  setCouponActive: async (id: string, active: boolean): Promise<Coupon | null> => {
+    const { data, error } = await sb.from('coupons').update({ active }).eq('id', id).select().maybeSingle();
+    if (error) throw error;
+    return data ? rowToCoupon(data) : null;
+  },
+  incrementCouponUsage: async (id: string): Promise<void> => {
+    const { data, error: findErr } = await sb.from('coupons').select('used_count').eq('id', id).single();
+    if (findErr) throw findErr;
+    const { error } = await sb.from('coupons').update({ used_count: (data.used_count || 0) + 1 }).eq('id', id);
+    if (error) throw error;
+  },
+  deleteCoupon: async (id: string): Promise<void> => {
+    const { error } = await sb.from('coupons').delete().eq('id', id);
     if (error) throw error;
   },
 };

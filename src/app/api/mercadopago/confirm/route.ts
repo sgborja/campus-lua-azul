@@ -19,6 +19,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Curso o Usuario no encontrado' }, { status: 404 });
     }
 
+    // El monto esperado es el de la orden (puede tener un cupón aplicado),
+    // nunca el precio de lista del curso: un cupón legítimo paga menos.
+    const orders = await db.getOrders();
+    const pendingOrder = orders.find(
+      (o) => (preferenceId && o.mpPreferenceId === preferenceId) || (o.userId === user.id && o.courseId === course.id && o.status === 'PENDING')
+    );
+    const expectedAmount = pendingOrder?.amount ?? course.price;
+
     // Si Mercado Pago está configurado (producción con pagos reales), la
     // única fuente de verdad válida es consultar el pago por su API: nunca
     // hay que confiar en que el navegador dice "pagué". Un curso gratis no
@@ -43,7 +51,7 @@ export async function POST(req: NextRequest) {
       const isApproved = payment.status === 'approved';
       const matchesCourse = String(metaCourseId) === String(course.id);
       const matchesUser = String(metaUserId) === String(user.id);
-      const matchesAmount = Math.round(Number(payment.transaction_amount)) >= Math.round(course.price);
+      const matchesAmount = Math.round(Number(payment.transaction_amount)) >= Math.round(expectedAmount);
 
       if (!isApproved || !matchesCourse || !matchesUser || !matchesAmount) {
         console.error('Verificación de pago fallida', {
@@ -60,16 +68,11 @@ export async function POST(req: NextRequest) {
     // Enroll the user in the course
     const enrollment = await db.enroll(user.id, course.id);
 
-    // Update order status if exists
-    const orders = await db.getOrders();
-    const existingOrder = orders.find(
-      (o) => (preferenceId && o.mpPreferenceId === preferenceId) || (o.userId === user.id && o.courseId === course.id && o.status === 'PENDING')
-    );
-
-    if (existingOrder) {
-      existingOrder.status = 'APPROVED';
-      existingOrder.mpPaymentId = paymentId || `pay_${Date.now()}`;
-      await db.saveOrder(existingOrder);
+    // Update order status if exists (reutiliza la orden pendiente ya encontrada arriba)
+    if (pendingOrder) {
+      pendingOrder.status = 'APPROVED';
+      pendingOrder.mpPaymentId = paymentId || `pay_${Date.now()}`;
+      await db.saveOrder(pendingOrder);
     } else {
       await db.saveOrder({
         id: `ord_${Date.now()}`,
@@ -84,6 +87,11 @@ export async function POST(req: NextRequest) {
         status: 'APPROVED',
         createdAt: new Date().toISOString(),
       });
+    }
+
+    if (pendingOrder?.couponCode) {
+      const coupon = await db.getCouponByCode(pendingOrder.couponCode);
+      if (coupon) await db.incrementCouponUsage(coupon.id);
     }
 
     // Send welcome email

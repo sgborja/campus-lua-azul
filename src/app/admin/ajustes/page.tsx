@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Settings, CheckCircle2, FileText, Award, ShieldAlert } from 'lucide-react';
+import { Settings, CheckCircle2, FileText, Award, ShieldAlert, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 export default function AdminSettingsPage() {
@@ -70,8 +70,57 @@ export default function AdminSettingsPage() {
         </span>
         <h2 className="text-xl font-serif font-bold text-slate-900 mt-0.5">Ajustes del Sitio</h2>
         <p className="text-xs text-slate-500">
-          Editá el texto del pie de página y la plantilla de los certificados oficiales.
+          Editá el encabezado de la home, el pie de página y la plantilla de los certificados oficiales.
         </p>
+      </div>
+
+      {/* Hero de la Home */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h3 className="font-serif font-bold text-base text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Sparkles className="w-5 h-5 text-dorado" />
+          Encabezado de la Home
+        </h3>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">Badge superior</label>
+          <input
+            type="text"
+            value={settings.heroBadge}
+            onChange={(e) => handleChange('heroBadge', e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-700 block">Título principal</label>
+            <input
+              type="text"
+              value={settings.heroTitleMain}
+              onChange={(e) => handleChange('heroTitleMain', e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-700 block">Título destacado (en dorado)</label>
+            <input
+              type="text"
+              value={settings.heroTitleAccent}
+              onChange={(e) => handleChange('heroTitleAccent', e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold italic"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">Subtítulo</label>
+          <textarea
+            rows={2}
+            value={settings.heroSubtitle}
+            onChange={(e) => handleChange('heroSubtitle', e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
       </div>
 
       {/* Footer */}
@@ -86,6 +135,27 @@ export default function AdminSettingsPage() {
             rows={3}
             value={settings.footerDescription}
             onChange={(e) => handleChange('footerDescription', e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">Frase destacada (en dorado, junto a la estrella)</label>
+          <input
+            type="text"
+            value={settings.footerTagline}
+            onChange={(e) => handleChange('footerTagline', e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs italic"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">Ubicación (dejalo vacío para no mostrarla)</label>
+          <input
+            type="text"
+            value={settings.footerLocation}
+            onChange={(e) => handleChange('footerLocation', e.target.value)}
+            placeholder="ej. Buenos Aires, Argentina"
             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
           />
         </div>

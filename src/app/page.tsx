@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { Course, Testimonial } from '@/lib/types';
+import { Course, Testimonial, SiteSettings } from '@/lib/types';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import LuaAzulLogo, { StarIcon } from '@/components/LuaAzulLogo';
 import {
@@ -26,6 +26,7 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [loading, setLoading] = useState(true);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
 
   useEffect(() => {
     fetch(`/api/courses${user ? `?userId=${user.id}` : ''}`)
@@ -43,6 +44,13 @@ export default function HomePage() {
     fetch('/api/testimonials')
       .then((res) => res.json())
       .then((data) => setTestimonials(data.testimonials || []))
+      .catch((err) => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then((res) => res.json())
+      .then((data) => setSettings(data.settings || null))
       .catch((err) => console.error(err));
   }, []);
 
@@ -66,17 +74,18 @@ export default function HomePage() {
           {/* Brand Mark with 4-pointed Star */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-azul-dark/80 border border-dorado/40 text-celeste text-xs tracking-wider backdrop-blur-sm">
             <StarIcon className="w-3.5 h-3.5 text-dorado" />
-            <span className="font-medium">Seminarios Lua Azul · Línea Formación</span>
+            <span className="font-medium">{settings?.heroBadge || 'Seminarios Lua Azul · Línea Formación'}</span>
           </div>
 
           {/* Positioning statement from style guide */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-medium tracking-tight text-white leading-tight">
-            Formación con raíz botánica <br className="hidden sm:block" />
-            y <span className="text-dorado italic font-serif">profundidad simbólica</span>
+            {settings?.heroTitleMain || 'Formación con raíz botánica'} <br className="hidden sm:block" />
+            <span className="text-dorado italic font-serif">{settings?.heroTitleAccent || 'y profundidad simbólica'}</span>
           </h1>
 
           <p className="text-sm sm:text-base text-celeste/90 max-w-2xl mx-auto leading-relaxed font-light">
-            Un camino de estudio serio en terapias florales, energéticas y rúnicas. Para leerte a vos y acompañar a otros, con el tiempo y el cuidado que cada proceso merece.
+            {settings?.heroSubtitle ||
+              'Un camino de estudio serio en terapias florales, energéticas y rúnicas. Para leerte a vos y acompañar a otros, con el tiempo y el cuidado que cada proceso merece.'}
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">

@@ -6,29 +6,30 @@ import { db } from '@/lib/db';
 
 const FALLBACK_DESCRIPTION =
   'Formación con raíz botánica y profundidad simbólica, para leerte a vos y acompañar a otros. Cursos en Flores de Bach, Reiki, Runas Vikingas y Flores de California.';
+const FALLBACK_TAGLINE = 'Hacer las cosas con cuidado y que se note.';
 
 export default async function Footer() {
-  const footerDescription = await db
-    .getSiteSettings()
-    .then((s) => s.footerDescription)
-    .catch(() => FALLBACK_DESCRIPTION);
+  const settings = await db.getSiteSettings().catch(() => null);
+  const footerDescription = settings?.footerDescription || FALLBACK_DESCRIPTION;
+  const footerTagline = settings?.footerTagline || FALLBACK_TAGLINE;
+  const footerLocation = settings?.footerLocation || '';
 
   return (
     <footer className="bg-azul-950 text-celeste border-t border-azul/40 mt-20 no-print">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          
+
           {/* Brand Col */}
           <div className="md:col-span-2 space-y-4">
-            <LuaAzulLogo color="#ffffff" subtitle="Seminarios" />
-            
+            <LuaAzulLogo inverted subtitle="Seminarios" />
+
             <p className="text-xs sm:text-sm text-celeste/80 max-w-md leading-relaxed font-light">
               {footerDescription}
             </p>
 
             <div className="flex items-center gap-2 text-xs text-dorado font-serif italic">
               <StarIcon className="w-3 h-3 text-dorado" />
-              <span>Hacer las cosas con cuidado y que se note.</span>
+              <span>{footerTagline}</span>
             </div>
           </div>
 
@@ -98,8 +99,12 @@ export default async function Footer() {
         <div className="border-t border-azul/40 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-celeste/50 gap-4 font-light">
           <p>© {new Date().getFullYear()} Lua Azul. Todos los derechos reservados.</p>
           <p className="flex items-center gap-1.5">
-            <span>Buenos Aires, Argentina</span>
-            <span>·</span>
+            {footerLocation && (
+              <>
+                <span>{footerLocation}</span>
+                <span>·</span>
+              </>
+            )}
             <span className="text-dorado font-serif">Seminarios Lua Azul</span>
           </p>
         </div>
