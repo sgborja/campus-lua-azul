@@ -174,9 +174,9 @@ export default function CourseDetailPage() {
       
       {/* Course Hero Banner */}
       <section className="bg-gradient-to-b from-slate-950 via-lua-950 to-slate-900 text-white py-14 lg:py-20 px-4 sm:px-6 lg:px-8 border-b border-lua-900/50">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          
-          <div className="lg:col-span-7 space-y-5">
+        <div className="max-w-7xl mx-auto">
+
+          <div className="max-w-3xl space-y-5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="bg-lua-600/30 text-lua-300 text-xs font-semibold px-3 py-1 rounded-full border border-lua-500/30">
                 {course.category}
@@ -214,178 +214,12 @@ export default function CourseDetailPage() {
             </div>
           </div>
 
-          {/* Pricing Card & Checkout Box */}
-          <div className="lg:col-span-5">
-            <div className="bg-white text-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
-              <div className="relative h-48 w-full rounded-2xl overflow-hidden mb-4">
-                <img
-                  src={course.coverImage}
-                  alt={course.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <span className="text-xs font-medium text-slate-500 block">Inversión del curso</span>
-                  {course.isFree ? (
-                    <span className="text-3xl font-extrabold text-emerald-600">GRATIS</span>
-                  ) : course.priceOnRequest ? (
-                    <span className="text-3xl font-extrabold text-slate-900">Consultar</span>
-                  ) : (
-                    <div className="space-y-0.5">
-                      {appliedCoupon ? (
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-semibold text-slate-400 line-through">
-                            ${course.price.toLocaleString('es-AR')}
-                          </span>
-                          <span className="text-3xl font-extrabold text-emerald-600">
-                            {appliedCoupon.finalPrice === 0 ? 'GRATIS' : `$${appliedCoupon.finalPrice.toLocaleString('es-AR')}`}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-3xl font-extrabold text-slate-900">
-                          ${course.price.toLocaleString('es-AR')} <span className="text-sm font-semibold text-slate-500">ARS</span>
-                        </span>
-                      )}
-                      <p className="text-[11px] text-slate-500 flex items-center gap-1">
-                        <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
-                        Hasta 12 cuotas con Mercado Pago
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {!isEnrolled && !course.isFree && !course.priceOnRequest && (
-                <div className="space-y-1.5">
-                  {appliedCoupon ? (
-                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs">
-                      <span className="text-emerald-800 font-semibold">
-                        Cupón <code className="font-mono">{appliedCoupon.code}</code> aplicado ({appliedCoupon.discountPercent}% off)
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => { setAppliedCoupon(null); setCouponInput(''); }}
-                        className="text-emerald-700 hover:underline font-semibold"
-                      >
-                        Quitar
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={couponInput}
-                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
-                        placeholder="¿Tenés un cupón?"
-                        className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono uppercase"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleApplyCoupon}
-                        disabled={checkingCoupon || !couponInput.trim()}
-                        className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs disabled:opacity-50 whitespace-nowrap"
-                      >
-                        {checkingCoupon ? '...' : 'Aplicar'}
-                      </button>
-                    </div>
-                  )}
-                  {couponError && <p className="text-[11px] text-red-600">{couponError}</p>}
-                </div>
-              )}
-
-              {isEnrolled ? (
-                <div className="space-y-3">
-                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span>¡Ya estás matriculada/o en este curso!</span>
-                  </div>
-                  <Link
-                    href={`/campus/curso/${course.slug}`}
-                    className="w-full py-3.5 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
-                  >
-                    Ir al Aula Virtual
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              ) : course.priceOnRequest ? (
-                <div className="space-y-3">
-                  <a
-                    href={`https://wa.me/541168790332?text=${encodeURIComponent(`Hola! Quiero consultar por el curso "${course.title}".`)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-3.5 px-6 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
-                  >
-                    Consultar por WhatsApp
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                  <p className="text-[11px] text-slate-400 text-center">
-                    Te contamos el valor y la modalidad de inscripción
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <button
-                    onClick={handleEnrollOrCheckout}
-                    disabled={processingPayment}
-                    className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-lua-600 to-lua-700 hover:from-lua-500 hover:to-lua-600 text-white font-bold text-sm shadow-lg shadow-lua-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {processingPayment ? (
-                      'Procesando...'
-                    ) : course.isFree || appliedCoupon?.finalPrice === 0 ? (
-                      'Inscribirme Gratis Ahora'
-                    ) : (
-                      <>
-                        <CreditCard className="w-4 h-4" />
-                        Inscribirme con Mercado Pago
-                      </>
-                    )}
-                  </button>
-                  <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-                    <Lock className="w-3 h-3 text-slate-400" />
-                    Pago seguro y acceso instantáneo de por vida
-                  </p>
-                </div>
-              )}
-
-              {/* What is included checklist */}
-              <div className="pt-4 border-t border-slate-100 space-y-2.5">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Este curso incluye:
-                </h4>
-                <ul className="space-y-2 text-xs text-slate-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-lua-600 flex-shrink-0" />
-                    <span>Acceso ilimitado a todas las lecciones en video y texto</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-lua-600 flex-shrink-0" />
-                    <span>{course.resources.length} guías y plantillas en PDF descargables</span>
-                  </li>
-                  {course.quiz && (
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-lua-600 flex-shrink-0" />
-                      <span>Examen interactivo ({course.quiz.questions.length} preguntas)</span>
-                    </li>
-                  )}
-                  {course.certificateEnabled && (
-                    <li className="flex items-center gap-2 text-amber-700 font-semibold">
-                      <Award className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                      <span>Certificado Oficial de Finalización con código QR</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
-            </div>
-          </div>
-
         </div>
       </section>
 
       {/* SYLLABUS & RESOURCES SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
-        
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+
         {/* Left: Syllabus & Description */}
         <div className="lg:col-span-8 space-y-8">
           
@@ -505,8 +339,171 @@ export default function CourseDetailPage() {
 
         </div>
 
-        {/* Right: Instructor / Lua Azul info */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* Right: Pricing / Enroll / Instructor — sticky so it stays visible next to the long description */}
+        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
+          <div className="bg-white text-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+            <div className="relative h-48 w-full rounded-2xl overflow-hidden mb-4">
+              <img
+                src={course.coverImage}
+                alt={course.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <div className="flex items-baseline justify-between">
+              <div>
+                <span className="text-xs font-medium text-slate-500 block">Inversión del curso</span>
+                {course.isFree ? (
+                  <span className="text-3xl font-extrabold text-emerald-600">GRATIS</span>
+                ) : course.priceOnRequest ? (
+                  <span className="text-3xl font-extrabold text-slate-900">Consultar</span>
+                ) : (
+                  <div className="space-y-0.5">
+                    {appliedCoupon ? (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-semibold text-slate-400 line-through">
+                          ${course.price.toLocaleString('es-AR')}
+                        </span>
+                        <span className="text-3xl font-extrabold text-emerald-600">
+                          {appliedCoupon.finalPrice === 0 ? 'GRATIS' : `$${appliedCoupon.finalPrice.toLocaleString('es-AR')}`}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-3xl font-extrabold text-slate-900">
+                        ${course.price.toLocaleString('es-AR')} <span className="text-sm font-semibold text-slate-500">ARS</span>
+                      </span>
+                    )}
+                    <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                      <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
+                      Hasta 12 cuotas con Mercado Pago
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {!isEnrolled && !course.isFree && !course.priceOnRequest && (
+              <div className="space-y-1.5">
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs">
+                    <span className="text-emerald-800 font-semibold">
+                      Cupón <code className="font-mono">{appliedCoupon.code}</code> aplicado ({appliedCoupon.discountPercent}% off)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setAppliedCoupon(null); setCouponInput(''); }}
+                      className="text-emerald-700 hover:underline font-semibold"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                      placeholder="¿Tenés un cupón?"
+                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono uppercase"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={checkingCoupon || !couponInput.trim()}
+                      className="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {checkingCoupon ? '...' : 'Aplicar'}
+                    </button>
+                  </div>
+                )}
+                {couponError && <p className="text-[11px] text-red-600">{couponError}</p>}
+              </div>
+            )}
+
+            {isEnrolled ? (
+              <div className="space-y-3">
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>¡Ya estás matriculada/o en este curso!</span>
+                </div>
+                <Link
+                  href={`/campus/curso/${course.slug}`}
+                  className="w-full py-3.5 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  Ir al Aula Virtual
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            ) : course.priceOnRequest ? (
+              <div className="space-y-3">
+                <a
+                  href={`https://wa.me/541168790332?text=${encodeURIComponent(`Hola! Quiero consultar por el curso "${course.title}".`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  Consultar por WhatsApp
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+                <p className="text-[11px] text-slate-400 text-center">
+                  Te contamos el valor y la modalidad de inscripción
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <button
+                  onClick={handleEnrollOrCheckout}
+                  disabled={processingPayment}
+                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-lua-600 to-lua-700 hover:from-lua-500 hover:to-lua-600 text-white font-bold text-sm shadow-lg shadow-lua-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {processingPayment ? (
+                    'Procesando...'
+                  ) : course.isFree || appliedCoupon?.finalPrice === 0 ? (
+                    'Inscribirme Gratis Ahora'
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      Inscribirme con Mercado Pago
+                    </>
+                  )}
+                </button>
+                <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
+                  <Lock className="w-3 h-3 text-slate-400" />
+                  Pago seguro y acceso instantáneo de por vida
+                </p>
+              </div>
+            )}
+
+            {/* What is included checklist */}
+            <div className="pt-4 border-t border-slate-100 space-y-2.5">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Este curso incluye:
+              </h4>
+              <ul className="space-y-2 text-xs text-slate-600">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-lua-600 flex-shrink-0" />
+                  <span>Acceso ilimitado a todas las lecciones en video y texto</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-lua-600 flex-shrink-0" />
+                  <span>{course.resources.length} guías y plantillas en PDF descargables</span>
+                </li>
+                {course.quiz && (
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-lua-600 flex-shrink-0" />
+                    <span>Examen interactivo ({course.quiz.questions.length} preguntas)</span>
+                  </li>
+                )}
+                {course.certificateEnabled && (
+                  <li className="flex items-center gap-2 text-amber-700 font-semibold">
+                    <Award className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                    <span>Certificado Oficial de Finalización con código QR</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
               Dictado por Lua Azul
