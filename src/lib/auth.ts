@@ -94,6 +94,18 @@ export async function requireAdmin(req: NextRequest): Promise<User | null> {
 }
 
 /**
+ * Igual que requireAdmin, pero solo para acciones reservadas al rol ADMIN:
+ * gestión de roles de usuario, ajustes del sitio, campañas de cumpleaños y
+ * pedidos de Mercado Pago. PROFESOR y EDITOR pueden entrar al panel y
+ * gestionar contenido (cursos, exámenes, testimonios), pero no estas.
+ */
+export async function requireSuperAdmin(req: NextRequest): Promise<User | null> {
+  const user = await getSessionUser(req);
+  if (!user || user.role !== 'ADMIN') return null;
+  return user;
+}
+
+/**
  * Verifica que haya una sesión válida y que corresponda al `userId` que el
  * cliente dice estar operando (o que sea un admin actuando en nombre de otro).
  */

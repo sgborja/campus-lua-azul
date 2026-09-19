@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { UserRole } from '@/lib/types';
+import { useAuth } from '@/lib/auth-context';
 import {
   Users,
   Shield,
@@ -16,6 +17,8 @@ import {
 } from 'lucide-react';
 
 export default function AdminUsersAndPermissionsPage() {
+  const { user: currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'ADMIN';
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -176,22 +179,30 @@ export default function AdminUsersAndPermissionsPage() {
                     </div>
                   </div>
 
-                  {/* Role Selector Controls */}
+                  {/* Role Selector Controls (solo ADMIN puede reasignar roles) */}
                   <div className="flex items-center gap-2 self-end sm:self-center">
-                    <span className="text-xs text-slate-400 font-medium hidden md:inline">
-                      Asignar rol:
-                    </span>
-                    <select
-                      value={u.role}
-                      disabled={updatingRoleId === u.id}
-                      onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold bg-white text-slate-800 outline-none focus:ring-2 focus:ring-azul disabled:opacity-50 cursor-pointer shadow-sm"
-                    >
-                      <option value="ADMIN">👑 Administrador (Total)</option>
-                      <option value="PROFESOR">🌿 Profesor / Instructor</option>
-                      <option value="EDITOR">✏️ Editor de Contenidos</option>
-                      <option value="STUDENT">🎓 Alumno</option>
-                    </select>
+                    {isSuperAdmin ? (
+                      <>
+                        <span className="text-xs text-slate-400 font-medium hidden md:inline">
+                          Asignar rol:
+                        </span>
+                        <select
+                          value={u.role}
+                          disabled={updatingRoleId === u.id}
+                          onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
+                          className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold bg-white text-slate-800 outline-none focus:ring-2 focus:ring-azul disabled:opacity-50 cursor-pointer shadow-sm"
+                        >
+                          <option value="ADMIN">👑 Administrador (Total)</option>
+                          <option value="PROFESOR">🌿 Profesor / Instructor</option>
+                          <option value="EDITOR">✏️ Editor de Contenidos</option>
+                          <option value="STUDENT">🎓 Alumno</option>
+                        </select>
+                      </>
+                    ) : (
+                      <span className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold bg-slate-50 text-slate-500">
+                        {u.role}
+                      </span>
+                    )}
                   </div>
                 </div>
               );

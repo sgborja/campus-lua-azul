@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { checkUpcomingBirthdays } from '@/lib/email';
-import { requireAdmin } from '@/lib/auth';
+import { requireSuperAdmin } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
-  if (!(await requireAdmin(req))) {
+  if (!(await requireSuperAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   const upcoming = await checkUpcomingBirthdays(30); // next 30 days
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!(await requireAdmin(req))) {
+  if (!(await requireSuperAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {

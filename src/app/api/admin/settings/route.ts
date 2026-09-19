@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth';
+import { requireSuperAdmin } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -13,7 +13,7 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
-  if (!(await requireAdmin(req))) {
+  if (!(await requireSuperAdmin(req))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
   try {

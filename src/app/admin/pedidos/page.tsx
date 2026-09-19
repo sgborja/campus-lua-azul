@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { CreditCard, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { CreditCard, CheckCircle2, Clock, AlertCircle, ShieldAlert } from 'lucide-react';
 import { Order } from '@/lib/types';
+import { useAuth } from '@/lib/auth-context';
 
 export default function AdminOrdersPage() {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +23,18 @@ export default function AdminOrdersPage() {
   const totalRevenue = orders
     .filter((o) => o.status === 'APPROVED')
     .reduce((sum, o) => sum + (o.amount || 0), 0);
+
+  if (user && user.role !== 'ADMIN') {
+    return (
+      <div className="max-w-md mx-auto text-center py-24 space-y-3">
+        <ShieldAlert className="w-10 h-10 text-slate-300 mx-auto" />
+        <h2 className="font-serif font-bold text-lg text-slate-800">Acceso restringido</h2>
+        <p className="text-xs text-slate-500">
+          Solo el rol Administrador puede ver las transacciones de Mercado Pago.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

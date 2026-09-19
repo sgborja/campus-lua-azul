@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Cake, Mail, Send, CheckCircle2, Sparkles, Gift, Clock, Save } from 'lucide-react';
+import { Cake, Mail, Send, CheckCircle2, Sparkles, Gift, Clock, Save, ShieldAlert } from 'lucide-react';
 import RichTextEditor from '@/components/admin/RichTextEditor';
+import { useAuth } from '@/lib/auth-context';
 
 export default function AdminBirthdaysPage() {
+  const { user } = useAuth();
   const [data, setData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [sendingUserId, setSendingUserId] = useState<string | null>(null);
@@ -93,6 +95,18 @@ export default function AdminBirthdaysPage() {
       setSendingUserId(null);
     }
   };
+
+  if (user && user.role !== 'ADMIN') {
+    return (
+      <div className="max-w-md mx-auto text-center py-24 space-y-3">
+        <ShieldAlert className="w-10 h-10 text-slate-300 mx-auto" />
+        <h2 className="font-serif font-bold text-lg text-slate-800">Acceso restringido</h2>
+        <p className="text-xs text-slate-500">
+          Solo el rol Administrador puede editar la plantilla y enviar los cupones de cumpleaños.
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div className="py-20 text-center text-xs text-slate-500">Cargando módulo de cumpleaños...</div>;

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 import {
   Users,
   BookOpen,
@@ -16,6 +17,8 @@ import {
 } from 'lucide-react';
 
 export default function AdminOverviewPage() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'ADMIN';
   const [data, setData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -124,37 +127,39 @@ export default function AdminOverviewPage() {
           </div>
         </Link>
 
-        {/* Card 4: Revenue -> /admin/pedidos */}
-        <Link
-          href="/admin/pedidos"
-          className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2 hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all group block cursor-pointer"
-          title="Ver ventas y órdenes de Mercado Pago"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
-              Ventas Mercado Pago
-            </span>
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              <CreditCard className="w-5 h-5" />
+        {/* Card 4: Revenue -> /admin/pedidos (solo ADMIN) */}
+        {isSuperAdmin && (
+          <Link
+            href="/admin/pedidos"
+            className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2 hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all group block cursor-pointer"
+            title="Ver ventas y órdenes de Mercado Pago"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-blue-600 transition-colors">
+                Ventas Mercado Pago
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <CreditCard className="w-5 h-5" />
+              </div>
             </div>
-          </div>
-          <div className="text-3xl font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors">
-            ${m.totalRevenue.toLocaleString('es-AR')}
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
-            <span className="text-emerald-600 font-semibold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> Directo
-            </span>
-            <span className="text-blue-600 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-0.5">
-              Ver Pedidos <ArrowRight className="w-3 h-3" />
-            </span>
-          </div>
-        </Link>
+            <div className="text-3xl font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors">
+              ${m.totalRevenue.toLocaleString('es-AR')}
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+              <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                <TrendingUp className="w-3.5 h-3.5" /> Directo
+              </span>
+              <span className="text-blue-600 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-0.5">
+                Ver Pedidos <ArrowRight className="w-3 h-3" />
+              </span>
+            </div>
+          </Link>
+        )}
 
       </div>
 
-      {/* BIRTHDAYS ALERT CALLOUT */}
-      {data?.upcomingBirthdays && data.upcomingBirthdays.length > 0 && (
+      {/* BIRTHDAYS ALERT CALLOUT (solo ADMIN, maneja cupones) */}
+      {isSuperAdmin && data?.upcomingBirthdays && data.upcomingBirthdays.length > 0 && (
         <div className="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-amber-500/10 border border-amber-300/80 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -185,8 +190,9 @@ export default function AdminOverviewPage() {
 
       {/* TWO COLUMN SUMMARY: Recent Orders & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left: Recent Orders */}
+
+        {/* Left: Recent Orders (solo ADMIN) */}
+        {isSuperAdmin && (
         <div className="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="font-serif font-bold text-base text-slate-900">
@@ -220,9 +226,10 @@ export default function AdminOverviewPage() {
             <p className="text-xs text-slate-400 py-4 text-center">No hay transacciones registradas.</p>
           )}
         </div>
+        )}
 
         {/* Right: Quick shortcuts */}
-        <div className="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+        <div className={`${isSuperAdmin ? 'lg:col-span-5' : 'lg:col-span-12'} bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4`}>
           <h3 className="font-serif font-bold text-base text-slate-900 border-b border-slate-100 pb-3">
             Accesos Rápidos del Administrador
           </h3>

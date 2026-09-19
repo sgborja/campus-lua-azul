@@ -39,16 +39,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  const isSuperAdmin = user.role === 'ADMIN';
+
   const navItems = [
-    { label: 'Visión General', href: '/admin', icon: LayoutDashboard },
-    { label: 'Gestor de Cursos', href: '/admin/cursos', icon: BookOpen },
-    { label: 'Área de Exámenes', href: '/admin/examenes', icon: Award },
-    { label: 'Alumnos y Progreso', href: '/admin/alumnos', icon: Users },
-    { label: 'Mails de Cumpleaños', href: '/admin/cumpleanos', icon: Cake },
-    { label: 'Testimonios', href: '/admin/testimonios', icon: MessageSquareHeart },
-    { label: 'Pedidos Mercado Pago', href: '/admin/pedidos', icon: CreditCard },
-    { label: 'Ajustes del Sitio', href: '/admin/ajustes', icon: Settings },
-  ];
+    { label: 'Visión General', href: '/admin', icon: LayoutDashboard, superAdminOnly: false },
+    { label: 'Gestor de Cursos', href: '/admin/cursos', icon: BookOpen, superAdminOnly: false },
+    { label: 'Área de Exámenes', href: '/admin/examenes', icon: Award, superAdminOnly: false },
+    { label: 'Alumnos y Progreso', href: '/admin/alumnos', icon: Users, superAdminOnly: false },
+    { label: 'Mails de Cumpleaños', href: '/admin/cumpleanos', icon: Cake, superAdminOnly: true },
+    { label: 'Testimonios', href: '/admin/testimonios', icon: MessageSquareHeart, superAdminOnly: false },
+    { label: 'Pedidos Mercado Pago', href: '/admin/pedidos', icon: CreditCard, superAdminOnly: true },
+    { label: 'Ajustes del Sitio', href: '/admin/ajustes', icon: Settings, superAdminOnly: true },
+  ].filter((item) => !item.superAdminOnly || isSuperAdmin);
 
   const isActive = (href: string) => {
     if (href === '/admin' && pathname === '/admin') return true;

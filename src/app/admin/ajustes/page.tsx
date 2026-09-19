@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Settings, CheckCircle2, FileText, Award } from 'lucide-react';
+import { Settings, CheckCircle2, FileText, Award, ShieldAlert } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 export default function AdminSettingsPage() {
+  const { user } = useAuth();
   const [settings, setSettings] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,6 +44,18 @@ export default function AdminSettingsPage() {
       setSaving(false);
     }
   };
+
+  if (user && user.role !== 'ADMIN') {
+    return (
+      <div className="max-w-md mx-auto text-center py-24 space-y-3">
+        <ShieldAlert className="w-10 h-10 text-slate-300 mx-auto" />
+        <h2 className="font-serif font-bold text-lg text-slate-800">Acceso restringido</h2>
+        <p className="text-xs text-slate-500">
+          Solo el rol Administrador puede editar los ajustes del sitio.
+        </p>
+      </div>
+    );
+  }
 
   if (loading || !settings) {
     return <div className="py-20 text-center text-xs text-slate-500">Cargando ajustes...</div>;
