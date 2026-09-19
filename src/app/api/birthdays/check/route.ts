@@ -17,3 +17,24 @@ export async function GET(req: NextRequest) {
     logs,
   });
 }
+
+export async function PUT(req: NextRequest) {
+  if (!(await requireAdmin(req))) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
+  try {
+    const body = await req.json();
+    const template = await db.saveBirthdayTemplate({
+      subject: body.subject,
+      title: body.title,
+      message: body.message,
+      promoCode: body.promoCode,
+      discountPercent: Number(body.discountPercent),
+      validDays: Number(body.validDays),
+    });
+    return NextResponse.json({ success: true, template });
+  } catch (error) {
+    console.error('Error guardando plantilla de cumpleaños:', error);
+    return NextResponse.json({ error: 'Error al guardar la plantilla' }, { status: 500 });
+  }
+}

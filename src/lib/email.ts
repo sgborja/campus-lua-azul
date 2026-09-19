@@ -1,5 +1,6 @@
 import { db } from './db';
 import { BirthdayTemplate } from './types';
+import { sanitizeHtml } from './sanitizeHtml';
 
 export interface EmailPayload {
   to: string;
@@ -14,13 +15,16 @@ export function renderBirthdayEmailHtml({
   discountPercent,
   validDays,
   customMessage,
+  customTitle,
 }: {
   userName: string;
   promoCode: string;
   discountPercent: number;
   validDays: number;
   customMessage?: string;
+  customTitle?: string;
 }) {
+  const title = (customTitle || '¡Muy Feliz Cumpleaños, [NOMBRE]!').replace('[NOMBRE]', userName);
   return `
 <!DOCTYPE html>
 <html lang="es">
@@ -44,12 +48,12 @@ export function renderBirthdayEmailHtml({
   <div class="container">
     <div class="header">
       <div class="badge">🎁 ¡Tu Día Especial! 🎂</div>
-      <h1 class="title">¡Muy Feliz Cumpleaños, ${userName}!</h1>
+      <h1 class="title">${title}</h1>
       <p style="margin: 8px 0 0; color: #c3d8fc; font-size: 15px;">Te desea todo el equipo de Lua Azul</p>
     </div>
     <div class="content">
       <p>Hola <strong>${userName}</strong>,</p>
-      <p>${customMessage || '¡Hoy festejamos tu vida y tus ganas de seguir creando! En Lua Azul creemos que cada año nuevo es una oportunidad perfecta para iniciar proyectos apasionantes.'}</p>
+      <p>${sanitizeHtml(customMessage || '') || '¡Hoy festejamos tu vida y tus ganas de seguir creando! En Lua Azul creemos que cada año nuevo es una oportunidad perfecta para iniciar proyectos apasionantes.'}</p>
       
       <div class="gift-box">
         <p style="margin: 0 0 6px; font-weight: 600; color: #0d1838;">Tu regalo exclusivo de cumpleaños:</p>

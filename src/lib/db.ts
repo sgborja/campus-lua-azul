@@ -548,6 +548,18 @@ export const db = {
     if (error) throw error;
     return (data ?? []).map(rowToBirthdayLog);
   },
+  wasBirthdaySentThisYear: async (userId: string): Promise<boolean> => {
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString();
+    const { data, error } = await sb
+      .from('birthday_logs')
+      .select('id')
+      .eq('user_id', userId)
+      .gte('sent_at', startOfYear)
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return !!data;
+  },
   logBirthdayEmail: async (log: Omit<BirthdayEmailLog, 'id' | 'sentAt'>): Promise<BirthdayEmailLog> => {
     const row = {
       id: `blog_${Date.now()}`,

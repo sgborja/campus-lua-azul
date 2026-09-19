@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       discountPercent: template.discountPercent,
       validDays: template.validDays,
       customMessage: template.message.replace('[NOMBRE]', user.name),
+      customTitle: template.title,
     });
 
     const sendResult = await sendOrSimulateEmail({

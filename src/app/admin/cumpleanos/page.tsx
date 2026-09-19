@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Cake, Mail, Send, CheckCircle2, Sparkles, Gift, Clock } from 'lucide-react';
+import { Cake, Mail, Send, CheckCircle2, Sparkles, Gift, Clock, Save } from 'lucide-react';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 
 export default function AdminBirthdaysPage() {
   const [data, setData] = useState<any | null>(null);
@@ -9,11 +10,30 @@ export default function AdminBirthdaysPage() {
   const [sendingUserId, setSendingUserId] = useState<string | null>(null);
   const [lastSentPreview, setLastSentPreview] = useState<string | null>(null);
 
+  const [editSubject, setEditSubject] = useState('');
+  const [editTitle, setEditTitle] = useState('');
+  const [editMessage, setEditMessage] = useState('');
+  const [editPromoCode, setEditPromoCode] = useState('');
+  const [editDiscount, setEditDiscount] = useState(0);
+  const [editValidDays, setEditValidDays] = useState(0);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateSaved, setTemplateSaved] = useState(false);
+
   const fetchBirthdays = () => {
     setLoading(true);
     fetch('/api/birthdays/check')
       .then((res) => res.json())
-      .then((resData) => setData(resData))
+      .then((resData) => {
+        setData(resData);
+        if (resData.template) {
+          setEditSubject(resData.template.subject || '');
+          setEditTitle(resData.template.title || '');
+          setEditMessage(resData.template.message || '');
+          setEditPromoCode(resData.template.promoCode || '');
+          setEditDiscount(resData.template.discountPercent || 0);
+          setEditValidDays(resData.template.validDays || 0);
+        }
+      })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   };
@@ -21,6 +41,36 @@ export default function AdminBirthdaysPage() {
   useEffect(() => {
     fetchBirthdays();
   }, []);
+
+  const handleSaveTemplate = async () => {
+    setSavingTemplate(true);
+    setTemplateSaved(false);
+    try {
+      const res = await fetch('/api/birthdays/check', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: editSubject,
+          title: editTitle,
+          message: editMessage,
+          promoCode: editPromoCode,
+          discountPercent: editDiscount,
+          validDays: editValidDays,
+        }),
+      });
+      if (res.ok) {
+        setTemplateSaved(true);
+        fetchBirthdays();
+      } else {
+        alert('Error al guardar la plantilla');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error de conexión');
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
 
   const handleSendBirthday = async (userId: string) => {
     setSendingUserId(userId);
@@ -49,7 +99,6 @@ export default function AdminBirthdaysPage() {
   }
 
   const upcoming = data?.upcoming || [];
-  const template = data?.template;
   const logs = data?.logs || [];
 
   return (
@@ -134,27 +183,86 @@ export default function AdminBirthdaysPage() {
           </h3>
 
           <div className="space-y-3 text-xs">
-            <div>
-              <span className="text-slate-500 block">Asunto del correo:</span>
-              <strong className="text-slate-800">{template?.subject}</strong>
+            <div className="space-y-1">
+              <label className="text-slate-500 block font-semibold">Asunto del correo</label>
+              <input
+                type="text"
+                value={editSubject}
+                onChange={(e) => setEditSubject(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs"
+              />
             </div>
 
-            <div>
-              <span className="text-slate-500 block">Descuento de regalo:</span>
-              <strong className="text-rose-600 font-bold">{template?.discountPercent}% OFF</strong>
+            <div className="space-y-1">
+              <label className="text-slate-500 block font-semibold">Título dentro del correo</label>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="ej. ¡Muy Feliz Cumpleaños, [NOMBRE]!"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs"
+              />
             </div>
 
-            <div>
-              <span className="text-slate-500 block">Cupón base:</span>
-              <code className="bg-slate-100 px-2 py-0.5 rounded font-mono font-bold text-slate-800">
-                {template?.promoCode}
-              </code>
+            <div className="space-y-1">
+              <label className="text-slate-500 block font-semibold">
+                Mensaje (usá [NOMBRE] para el nombre de la alumna)
+              </label>
+              <RichTextEditor value={editMessage} onChange={setEditMessage} compact />
             </div>
 
-            <div>
-              <span className="text-slate-500 block">Días de validez:</span>
-              <span className="text-slate-700">{template?.validDays} días desde la fecha de envío</span>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-slate-500 block font-semibold">Descuento (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={editDiscount}
+                  onChange={(e) => setEditDiscount(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-rose-600"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-slate-500 block font-semibold">Días de validez</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={editValidDays}
+                  onChange={(e) => setEditValidDays(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs"
+                />
+              </div>
             </div>
+
+            <div className="space-y-1">
+              <label className="text-slate-500 block font-semibold">Cupón base</label>
+              <input
+                type="text"
+                value={editPromoCode}
+                onChange={(e) => setEditPromoCode(e.target.value.toUpperCase())}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono font-bold"
+              />
+              <p className="text-[10px] text-slate-400">
+                Se le agrega automáticamente el nombre de cada alumna, ej. {editPromoCode || 'CUMPLE'}-VALERIA
+              </p>
+            </div>
+
+            {templateSaved && (
+              <p className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5 flex items-center gap-1.5 w-fit">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Plantilla guardada
+              </p>
+            )}
+
+            <button
+              onClick={handleSaveTemplate}
+              disabled={savingTemplate}
+              className="px-4 py-2 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold text-xs shadow transition-all disabled:opacity-50 flex items-center gap-1.5"
+            >
+              <Save className="w-3.5 h-3.5" />
+              {savingTemplate ? 'Guardando...' : 'Guardar Plantilla'}
+            </button>
           </div>
         </div>
 
