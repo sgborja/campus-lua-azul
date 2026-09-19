@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
 export async function GET(
   req: NextRequest,
@@ -37,6 +38,9 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  if (!requireAdmin(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
   try {
     const course = db.getCourseById(params.id);
     if (!course) {
@@ -62,6 +66,9 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  if (!requireAdmin(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
   try {
     db.deleteCourse(params.id);
     return NextResponse.json({ success: true });

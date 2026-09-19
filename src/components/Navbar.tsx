@@ -19,7 +19,7 @@ import {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, role, logout, switchRole } = useAuth();
+  const { user, role, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 

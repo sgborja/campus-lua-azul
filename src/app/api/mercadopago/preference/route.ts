@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { createCoursePreference } from '@/lib/mercadopago';
+import { requireSelfOrAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
     const { courseId, userId } = await req.json();
+
+    if (!requireSelfOrAdmin(req, userId)) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
 
     const course = db.getCourseById(courseId);
     const user = db.getUserById(userId);

@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 import {
   LayoutDashboard,
   BookOpen,
@@ -15,8 +16,26 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
+const ADMIN_ROLES = ['ADMIN', 'PROFESOR', 'EDITOR'];
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && (!user || !ADMIN_ROLES.includes(user.role))) {
+      router.replace('/login');
+    }
+  }, [isLoading, user, router]);
+
+  if (isLoading || !user || !ADMIN_ROLES.includes(user.role)) {
+    return (
+      <div className="min-h-[85vh] flex items-center justify-center text-sm text-slate-500">
+        Verificando acceso...
+      </div>
+    );
+  }
 
   const navItems = [
     { label: 'Visión General', href: '/admin', icon: LayoutDashboard },

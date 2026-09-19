@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireSelfOrAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,6 +11,10 @@ export async function POST(req: NextRequest) {
         { error: 'Parámetros inválidos' },
         { status: 400 }
       );
+    }
+
+    if (!requireSelfOrAdmin(req, userId)) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
     const course = db.getCourseById(courseId);

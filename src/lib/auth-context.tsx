@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { User, UserRole } from './types';
 
 interface AuthContextType {
@@ -9,7 +10,6 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
-  switchRole: (newRole: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -18,30 +18,24 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => false,
   logout: () => {},
-  switchRole: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
-  // Initial load: check localStorage
+  // Carga inicial: la sesión vive en una cookie httpOnly, el servidor la valida.
   useEffect(() => {
-    try {
-      const savedUserId = localStorage.getItem('lua_campus_user_id');
-      fetch('/api/auth/me' + (savedUserId ? `?userId=${savedUserId}` : ''))
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.user) {
-            setUser(data.user);
-          }
-        })
-        .catch((err) => console.error('Error fetching auth:', err))
-        .finally(() => setIsLoading(false));
-    } catch (e) {
-      console.error(e);
-      setIsLoading(false);
-    }
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          setUser(data.user);
+        }
+      })
+      .catch((err) => console.error('Error fetching auth:', err))
+      .finally(() => setIsLoading(false));
   }, []);
 
   const login = async (email: string, pass: string): Promise<boolean> => {
@@ -54,8 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       if (res.ok && data.user) {
         setUser(data.user);
-        localStorage.setItem('lua_campus_user_id', data.user.id);
-        document.cookie = `campus_user_id=${data.user.id}; path=/; max-age=604800`;
         return true;
       }
       return false;
@@ -67,23 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('lua_campus_user_id');
-    document.cookie = 'campus_user_id=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    window.location.href = '/login';
-  };
-
-  const switchRole = async (newRole: UserRole) => {
-    try {
-      const res = await fetch(`/api/auth/switch?role=${newRole}`);
-      const data = await res.json();
-      if (data.user) {
-        setUser(data.user);
-        localStorage.setItem('lua_campus_user_id', data.user.id);
-        document.cookie = `campus_user_id=${data.user.id}; path=/; max-age=604800`;
-      }
-    } catch (e) {
-      console.error('Error switching role:', e);
-    }
+    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+      router.push('/login');
+    });
   };
 
   const role: UserRole = user?.role || 'STUDENT';
@@ -96,7 +74,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         logout,
-        switchRole,
       }}
     >
       {children}

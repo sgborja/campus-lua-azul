@@ -1,16 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { renderWelcomeCourseEmailHtml, sendOrSimulateEmail } from '@/lib/email';
+import { getPayment, isMercadoPagoConfigured } from '@/lib/mercadopago';
+import { requireSelfOrAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
     const { courseId, userId, paymentId, preferenceId } = await req.json();
+
+    if (!requireSelfOrAdmin(req, userId)) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
 
     const course = db.getCourseById(courseId);
     const user = db.getUserById(userId);
 
     if (!course || !user) {
       return NextResponse.json({ error: 'Curso o Usuario no encontrado' }, { status: 404 });
+    }
+
+    // Si Mercado Pago está configurado (producción con pagos reales), la
+    // única fuente de verdad válida es consultar el pago por su API: nunca
+    // hay que confiar en que el navegador dice "pagué". Un curso gratis no
+    // pasa por Mercado Pago y no requiere esta verificación.
+    if (!course.isFree && course.price > 0 && isMercadoPagoConfigured) {
+      if (!paymentId) {
+        return NextResponse.json({ error: 'Falta el identificador de pago de Mercado Pago' }, { status: 400 });
+      }
+
+      let payment;
+      try {
+        payment = await getPayment(String(paymentId));
+      } catch (e) {
+        console.error('No se pudo verificar el pago en Mercado Pago:', e);
+        return NextResponse.json({ error: 'No se pudo verificar el pago' }, { status: 402 });
+      }
+
+      const metadata = (payment.metadata || {}) as Record<string, unknown>;
+      const metaCourseId = metadata.course_id ?? metadata.courseId;
+      const metaUserId = metadata.user_id ?? metadata.userId;
+
+      const isApproved = payment.status === 'approved';
+      const matchesCourse = String(metaCourseId) === String(course.id);
+      const matchesUser = String(metaUserId) === String(user.id);
+      const matchesAmount = Math.round(Number(payment.transaction_amount)) >= Math.round(course.price);
+
+      if (!isApproved || !matchesCourse || !matchesUser || !matchesAmount) {
+        console.error('Verificación de pago fallida', {
+          paymentId,
+          status: payment.status,
+          metaCourseId,
+          metaUserId,
+          amount: payment.transaction_amount,
+        });
+        return NextResponse.json({ error: 'El pago no pudo ser verificado' }, { status: 402 });
+      }
     }
 
     // Enroll the user in the course

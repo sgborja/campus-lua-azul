@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { UserRole } from '@/lib/types';
+import { requireAdmin } from '@/lib/auth';
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const admin = requireAdmin(req);
+  if (!admin) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
   try {
     const { role } = await req.json();
 

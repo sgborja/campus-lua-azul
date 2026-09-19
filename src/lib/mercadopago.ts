@@ -1,10 +1,24 @@
-import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { Course, User } from './types';
 
 // Access token from environment or test fallback
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || '';
 
 export const isMercadoPagoConfigured = Boolean(MP_ACCESS_TOKEN);
+
+/**
+ * Consulta un pago directamente contra la API de Mercado Pago. Es la única
+ * fuente de verdad válida para saber si un pago fue realmente aprobado:
+ * nunca hay que confiar en lo que el navegador dice que pasó.
+ */
+export async function getPayment(paymentId: string) {
+  if (!MP_ACCESS_TOKEN) {
+    throw new Error('MP_ACCESS_TOKEN no configurado');
+  }
+  const client = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN, options: { timeout: 7000 } });
+  const payment = new Payment(client);
+  return payment.get({ id: paymentId });
+}
 
 export async function createCoursePreference({
   course,

@@ -4,7 +4,7 @@
       "id": "usr_sabrina",
       "name": "Sabrina Borja",
       "email": "sgborja@gmail.com",
-      "password": "admin123",
+      "password": "$2b$12$fwfjyUXNTwUSmNf1i2UrWOEDSu1MuVZmjNDnMbiluPcztNx5uCoKe",
       "role": "ADMIN",
       "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
       "createdAt": "2026-09-18T21:45:22.963Z"

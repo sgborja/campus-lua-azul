@@ -47,7 +47,10 @@ function getInitialData(): DatabaseSchema {
       id: 'usr_sabrina',
       name: 'Sabrina Borja',
       email: 'sgborja@gmail.com',
-      password: 'admin123',
+      // Hash bcrypt de la contraseña real (ver comunicación aparte). Nunca
+      // guardar contraseñas en texto plano: si esto se filtra, hay que
+      // rotar la contraseña y regenerar este hash.
+      password: '$2b$12$fwfjyUXNTwUSmNf1i2UrWOEDSu1MuVZmjNDnMbiluPcztNx5uCoKe',
       role: 'ADMIN',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
       createdAt: now,
@@ -327,7 +330,7 @@ export const db = {
     const course = data.courses.find((c) => c.id === courseId);
     if (!user || !course) throw new Error('Usuario o Curso no encontrado');
 
-    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
     const year = new Date().getFullYear();
     const code = `LUA-${year}-${randomPart}`;
 

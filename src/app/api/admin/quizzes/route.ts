@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { Quiz } from '@/lib/types';
+import { requireAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
+  if (!requireAdmin(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
   try {
     const body = await req.json();
     const { courseId, quiz } = body;
@@ -46,6 +50,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!requireAdmin(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
   try {
     const url = new URL(req.url);
     const courseId = url.searchParams.get('courseId');

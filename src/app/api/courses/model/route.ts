@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db, getModelCourse } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  if (!requireAdmin(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+  }
   try {
     const modelCourse = getModelCourse();
     db.saveCourse(modelCourse);
