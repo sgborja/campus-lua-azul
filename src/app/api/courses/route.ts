@@ -7,7 +7,9 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const userId = url.searchParams.get('userId');
 
-  const courses = await db.getCourses();
+  const isAdmin = !!(await requireAdmin(req));
+  const allCourses = await db.getCourses();
+  const courses = isAdmin ? allCourses : allCourses.filter((c) => c.published);
 
   if (!userId) {
     return NextResponse.json({ courses });
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
       description: body.description || '',
       price: Number(body.price) || 0,
       isFree: Boolean(body.isFree) || Number(body.price) === 0,
+      priceOnRequest: Boolean(body.priceOnRequest),
       coverImage: body.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800',
       category: body.category || 'General',
       level: body.level || 'Principiante',

@@ -5,6 +5,7 @@ import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import FloatingWhatsapp from '@/components/FloatingWhatsapp';
 
 const parisienne = Parisienne({
   weight: '400',
@@ -54,6 +55,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
+          <FloatingWhatsapp />
         </AuthProvider>
         <Analytics />
       </body>

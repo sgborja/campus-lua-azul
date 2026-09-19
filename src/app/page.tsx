@@ -186,6 +186,10 @@ export default function HomePage() {
                           <span className="bg-verde text-white font-bold text-xs px-2.5 py-1 rounded-md shadow uppercase tracking-wider">
                             Seminario Abierto
                           </span>
+                        ) : course.priceOnRequest ? (
+                          <span className="bg-azul text-white font-bold text-xs px-3 py-1 rounded-md shadow">
+                            Consultar
+                          </span>
                         ) : (
                           <span className="bg-azul text-white font-bold text-xs px-3 py-1 rounded-md shadow">
                             ${course.price.toLocaleString('es-AR')} ARS

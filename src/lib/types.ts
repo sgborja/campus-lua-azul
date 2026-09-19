@@ -80,6 +80,7 @@ export interface Course {
   description: string;
   price: number; // in ARS, 0 if free
   isFree: boolean;
+  priceOnRequest?: boolean; // si es true, se muestra "Consultar" en vez del precio
   coverImage: string;
   category: string;
   level: 'Principiante' | 'Intermedio' | 'Avanzado';

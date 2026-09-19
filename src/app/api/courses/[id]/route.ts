@@ -11,6 +11,10 @@ export async function GET(
     return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
   }
 
+  if (!course.published && !(await requireAdmin(req))) {
+    return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+  }
+
   const url = new URL(req.url);
   const userId = url.searchParams.get('userId');
 

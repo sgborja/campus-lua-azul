@@ -260,6 +260,8 @@ export default function CampusDashboardPage() {
                     </span>
                     {c.isFree ? (
                       <span className="text-emerald-600 font-bold">Gratis</span>
+                    ) : c.priceOnRequest ? (
+                      <span className="text-slate-900 font-bold">Consultar</span>
                     ) : (
                       <span className="text-slate-900 font-bold">${c.price.toLocaleString('es-AR')} ARS</span>
                     )}

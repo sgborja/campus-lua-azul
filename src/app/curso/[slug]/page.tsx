@@ -198,6 +198,8 @@ export default function CourseDetailPage() {
                   <span className="text-xs font-medium text-slate-500 block">Inversión del curso</span>
                   {course.isFree ? (
                     <span className="text-3xl font-extrabold text-emerald-600">GRATIS</span>
+                  ) : course.priceOnRequest ? (
+                    <span className="text-3xl font-extrabold text-slate-900">Consultar</span>
                   ) : (
                     <div className="space-y-0.5">
                       <span className="text-3xl font-extrabold text-slate-900">
@@ -225,6 +227,21 @@ export default function CourseDetailPage() {
                     Ir al Aula Virtual
                     <ArrowRight className="w-4 h-4" />
                   </Link>
+                </div>
+              ) : course.priceOnRequest ? (
+                <div className="space-y-3">
+                  <a
+                    href={`https://wa.me/541168790332?text=${encodeURIComponent(`Hola! Quiero consultar por el curso "${course.title}".`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-3.5 px-6 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                  >
+                    Consultar por WhatsApp
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                  <p className="text-[11px] text-slate-400 text-center">
+                    Te contamos el valor y la modalidad de inscripción
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">

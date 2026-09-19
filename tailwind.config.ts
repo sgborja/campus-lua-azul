@@ -16,6 +16,20 @@ const config: Config = {
           dark: '#1d345e',
           950: '#0f1c33',
         },
+        // Escala completa usada en botones y acentos (mismo tono que "azul")
+        lua: {
+          50: '#eef2f8',
+          100: '#dce6f1',
+          200: '#b9cce3',
+          300: '#93b0d3',
+          400: '#6690bf',
+          500: '#4269ad',
+          600: '#2E4C82',
+          700: '#253e6a',
+          800: '#1d345e',
+          900: '#16283f',
+          950: '#0f1c33',
+        },
         verde: {
           DEFAULT: '#1E5C42',
           light: '#2a7c59',

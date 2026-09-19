@@ -18,6 +18,8 @@ import {
   Sparkles,
   Award,
   Layers,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 export default function AdminCoursesPage() {
@@ -33,6 +35,8 @@ export default function AdminCoursesPage() {
   const [category, setCategory] = useState('Terapia Floral');
   const [price, setPrice] = useState(15000);
   const [isFree, setIsFree] = useState(false);
+  const [priceOnRequest, setPriceOnRequest] = useState(false);
+  const [published, setPublished] = useState(true);
   const [level, setLevel] = useState<'Principiante' | 'Intermedio' | 'Avanzado'>('Principiante');
   const [durationHours, setDurationHours] = useState(6);
   const [coverImage, setCoverImage] = useState('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800');
@@ -87,6 +91,8 @@ export default function AdminCoursesPage() {
     setCategory('Terapia Floral');
     setPrice(15000);
     setIsFree(false);
+    setPriceOnRequest(false);
+    setPublished(true);
     setLevel('Principiante');
     setDurationHours(6);
     setCoverImage('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800');
@@ -109,6 +115,8 @@ export default function AdminCoursesPage() {
     setCategory(course.category || 'Terapia Floral');
     setPrice(course.price || 0);
     setIsFree(Boolean(course.isFree));
+    setPriceOnRequest(Boolean(course.priceOnRequest));
+    setPublished(course.published !== undefined ? course.published : true);
     setLevel((course.level as any) || 'Principiante');
     setDurationHours(course.durationHours || 6);
     setCoverImage(course.coverImage || '');
@@ -184,6 +192,8 @@ export default function AdminCoursesPage() {
           category,
           price: isFree ? 0 : Number(price),
           isFree,
+          priceOnRequest,
+          published,
           level,
           durationHours: Number(durationHours),
           coverImage,
@@ -224,12 +234,13 @@ export default function AdminCoursesPage() {
           category,
           price: isFree ? 0 : Number(price),
           isFree,
+          priceOnRequest,
           level,
           durationHours: Number(durationHours),
           coverImage,
           shortDescription,
           description,
-          published: true,
+          published,
           certificateEnabled: true,
           modules: [
             {
@@ -287,6 +298,24 @@ export default function AdminCoursesPage() {
     }
   };
 
+  const handleTogglePublished = async (course: Course) => {
+    try {
+      const res = await fetch(`/api/courses/${course.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ published: !course.published }),
+      });
+      if (res.ok) {
+        fetchCourses();
+      } else {
+        alert('Error al cambiar la visibilidad del curso');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error de conexión');
+    }
+  };
+
   const handleDeleteCourse = async (id: string) => {
     if (!confirm('¿Estás segura de eliminar este curso del Campus?')) return;
 
@@ -336,16 +365,14 @@ export default function AdminCoursesPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {courses.length === 0 && (
-            <button
-              onClick={handleLoadModelCourse}
-              className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs shadow-sm transition-all flex items-center gap-2"
-              title="Cargar un curso modelo completo con lecciones y examen"
-            >
-              <Sparkles className="w-4 h-4 text-amber-600" />
-              <span>Cargar Curso Modelo (Flores de Bach)</span>
-            </button>
-          )}
+          <button
+            onClick={handleLoadModelCourse}
+            className="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs shadow-sm transition-all flex items-center gap-2"
+            title="Cargar un curso de ejemplo completo con lecciones y examen, para usar como modelo"
+          >
+            <Sparkles className="w-4 h-4 text-amber-600" />
+            <span>Cargar Curso de Ejemplo</span>
+          </button>
 
           <button
             onClick={handleOpenCreateModal}
@@ -410,8 +437,13 @@ export default function AdminCoursesPage() {
                     <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded backdrop-blur-sm">
                       {course.category}
                     </span>
+                    {!course.published && (
+                      <span className="absolute top-2 left-1/2 -translate-x-1/2 bg-slate-700 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">
+                        <EyeOff className="w-3 h-3" /> Oculto
+                      </span>
+                    )}
                     <span className="absolute bottom-2 right-2 bg-white/95 text-slate-900 text-xs font-bold px-2.5 py-1 rounded shadow">
-                      {course.isFree ? 'Gratis' : `$${course.price.toLocaleString('es-AR')} ARS`}
+                      {course.isFree ? 'Gratis' : course.priceOnRequest ? 'Consultar' : `$${course.price.toLocaleString('es-AR')} ARS`}
                     </span>
                     {course.quiz && (
                       <span className="absolute top-2 right-2 bg-amber-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">
@@ -469,6 +501,14 @@ export default function AdminCoursesPage() {
                     >
                       <ExternalLink className="w-4 h-4" />
                     </Link>
+
+                    <button
+                      onClick={() => handleTogglePublished(course)}
+                      className="p-1.5 text-slate-500 hover:text-lua-600 rounded-lg hover:bg-white transition-colors"
+                      title={course.published ? 'Ocultar curso (dejará de verse públicamente)' : 'Publicar curso (se mostrará públicamente)'}
+                    >
+                      {course.published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
                   </div>
 
                   <button
@@ -558,7 +598,7 @@ export default function AdminCoursesPage() {
                   <label className="font-semibold text-slate-700 block">Precio (ARS)</label>
                   <input
                     type="number"
-                    disabled={isFree}
+                    disabled={isFree || priceOnRequest}
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs outline-none disabled:opacity-50 font-bold"
@@ -576,6 +616,15 @@ export default function AdminCoursesPage() {
                     />
                     <span className="text-slate-700 font-medium">100% Gratuito</span>
                   </label>
+                  <label className="flex items-center gap-2 mt-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={priceOnRequest}
+                      onChange={(e) => setPriceOnRequest(e.target.checked)}
+                      className="rounded text-lua-600 focus:ring-lua-500"
+                    />
+                    <span className="text-slate-700 font-medium">Mostrar &quot;Consultar&quot; en vez del precio</span>
+                  </label>
                 </div>
 
                 <div className="space-y-1">
@@ -587,6 +636,18 @@ export default function AdminCoursesPage() {
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="flex items-center gap-2 cursor-pointer w-fit">
+                  <input
+                    type="checkbox"
+                    checked={published}
+                    onChange={(e) => setPublished(e.target.checked)}
+                    className="rounded text-lua-600 focus:ring-lua-500"
+                  />
+                  <span className="font-semibold text-slate-700">Curso visible públicamente (desmarcá para ocultarlo)</span>
+                </label>
               </div>
 
               <div className="space-y-1">
