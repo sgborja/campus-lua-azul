@@ -52,9 +52,23 @@ export default function UserAvatar({
     );
   }
 
+  if (!avatar) {
+    return (
+      <div
+        className={`${className} rounded-full bg-azul-950 border border-verde/30 flex-shrink-0 flex items-center justify-center overflow-hidden`}
+      >
+        <img
+          src="/images/lua-azul-cat-moon.png"
+          alt={name || 'Lua Azul'}
+          className="w-[80%] h-[80%] object-contain"
+        />
+      </div>
+    );
+  }
+
   return (
     <img
-      src={avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
+      src={avatar}
       alt={name || 'Avatar'}
       className={`${className} rounded-full object-cover border border-verde/30 flex-shrink-0`}
     />
