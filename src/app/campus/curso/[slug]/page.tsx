@@ -507,35 +507,37 @@ function CourseClassroomContent() {
               </div>
 
               {/* TABS HEADER */}
-              <div className="flex border-b border-slate-800 gap-6 text-xs font-semibold">
+              <div className="flex border-b border-slate-800 gap-4 sm:gap-6 text-xs font-semibold overflow-x-auto scrollbar-none">
                 <button
                   onClick={() => setActiveTab('content')}
-                  className={`pb-3 border-b-2 transition-colors flex items-center gap-2 ${
+                  className={`pb-3 border-b-2 transition-colors flex items-center gap-2 flex-shrink-0 whitespace-nowrap ${
                     activeTab === 'content'
                       ? 'border-lua-500 text-white'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <FileText className="w-4 h-4" />
-                  Notas y Explicación de la Clase
+                  <span className="hidden sm:inline">Notas y Explicación de la Clase</span>
+                  <span className="sm:hidden">Notas</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('resources')}
-                  className={`pb-3 border-b-2 transition-colors flex items-center gap-2 ${
+                  className={`pb-3 border-b-2 transition-colors flex items-center gap-2 flex-shrink-0 whitespace-nowrap ${
                     activeTab === 'resources'
                       ? 'border-lua-500 text-white'
                       : 'border-transparent text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <FileDown className="w-4 h-4" />
-                  Documentación Descargable ({course.resources.length})
+                  <span className="hidden sm:inline">Documentación Descargable ({course.resources.length})</span>
+                  <span className="sm:hidden">Archivos ({course.resources.length})</span>
                 </button>
 
                 {course.quiz && (
                   <button
                     onClick={() => setActiveTab('quiz')}
-                    className={`pb-3 border-b-2 transition-colors flex items-center gap-2 ${
+                    className={`pb-3 border-b-2 transition-colors flex items-center gap-2 flex-shrink-0 whitespace-nowrap ${
                       activeTab === 'quiz'
                         ? 'border-amber-500 text-amber-300'
                         : 'border-transparent text-slate-400 hover:text-slate-200'
