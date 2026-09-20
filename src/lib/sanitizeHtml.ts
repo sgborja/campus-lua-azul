@@ -21,6 +21,8 @@ const ALLOWED_TAGS = new Set([
   "tr",
   "th",
   "td",
+  "hr",
+  "pre",
 ]);
 
 const ALLOWED_ATTRS: Record<string, string[]> = {
