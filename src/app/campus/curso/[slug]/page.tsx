@@ -393,7 +393,7 @@ function CourseClassroomContent() {
         {/* RIGHT MAIN AREA: Video/Content Reader & Tabs */}
         <main className="flex-1 bg-slate-900 overflow-y-auto">
           {activeLesson ? (
-            <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-6">
+            <div className="w-full p-4 sm:p-8 space-y-6">
               
               {/* Media Player Box */}
               {activeLesson.type === 'VIDEO' && activeLesson.videoUrl ? (
@@ -561,7 +561,7 @@ function CourseClassroomContent() {
               {activeTab === 'content' && (
                 <div className="bg-slate-950 p-6 sm:p-8 rounded-2xl border border-slate-800 space-y-4">
                   <div
-                    className="prose prose-invert prose-sm max-w-none leading-relaxed text-slate-300 whitespace-pre-line [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_a]:text-lua-400 [&_a]:underline [&_h3]:text-lg [&_h3]:font-serif [&_h3]:font-bold [&_h3]:text-white [&_h3]:mt-4 [&_h4]:text-sm [&_h4]:font-bold [&_h4]:uppercase [&_h4]:tracking-wide [&_h4]:text-amber-400 [&_h4]:mt-4 [&_blockquote]:border-l-4 [&_blockquote]:border-amber-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-slate-400 [&_table]:w-full [&_table]:my-3 [&_table]:border-collapse [&_th]:border [&_th]:border-slate-700 [&_th]:bg-slate-900 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-700 [&_td]:p-2 [&_hr]:border-slate-800 [&_hr]:my-6 [&_pre]:whitespace-pre-wrap [&_pre]:font-mono [&_pre]:text-[11px] [&_pre]:leading-relaxed [&_pre]:text-slate-400 [&_pre]:bg-slate-900/60 [&_pre]:border [&_pre]:border-slate-800 [&_pre]:rounded-xl [&_pre]:p-4 [&_pre]:my-3 [&_pre]:overflow-x-auto"
+                    className="max-w-none text-base leading-relaxed text-slate-300 whitespace-pre-line [&_p]:mb-4 [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-4 [&_li]:mb-1 [&_a]:text-lua-400 [&_a]:underline [&_h3]:text-lg [&_h3]:font-serif [&_h3]:font-bold [&_h3]:text-white [&_h3]:mt-6 [&_h3]:mb-3 [&_h4]:text-sm [&_h4]:font-bold [&_h4]:uppercase [&_h4]:tracking-wide [&_h4]:text-amber-400 [&_h4]:mt-4 [&_h4]:mb-2 [&_blockquote]:border-l-4 [&_blockquote]:border-amber-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-slate-400 [&_blockquote]:mb-4 [&_table]:w-full [&_table]:my-3 [&_table]:border-collapse [&_th]:border [&_th]:border-slate-700 [&_th]:bg-slate-900 [&_th]:p-2 [&_th]:text-left [&_td]:border [&_td]:border-slate-700 [&_td]:p-2 [&_hr]:border-slate-800 [&_hr]:my-6"
                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(activeLesson.content) }}
                   />
                 </div>
