@@ -279,11 +279,19 @@ function CourseClassroomContent() {
 
       {/* Main Layout Area: Sidebar + Player */}
       <div className="flex-1 flex overflow-hidden">
-        
+
+        {/* Backdrop behind the sidebar on mobile so it doesn't blend into the lesson content */}
+        {sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 top-14 bg-black/70 z-10 md:hidden"
+          />
+        )}
+
         {/* LEFT SIDEBAR: Syllabus & Modules */}
         <aside
           className={`${
-            sidebarOpen ? 'w-80 lg:w-96 translate-x-0' : '-translate-x-full w-0'
+            sidebarOpen ? 'w-full sm:w-80 lg:w-96 translate-x-0 left-0' : '-translate-x-full w-0'
           } transition-all duration-300 bg-slate-950 border-r border-slate-800 flex flex-col flex-shrink-0 fixed inset-y-14 z-20 md:static`}
         >
           <div className="p-4 border-b border-slate-800/80">
