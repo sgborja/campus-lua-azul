@@ -23,6 +23,7 @@ const ALLOWED_TAGS = new Set([
   "td",
   "hr",
   "pre",
+  "img",
 ]);
 
 const ALLOWED_ATTRS: Record<string, string[]> = {
@@ -30,6 +31,7 @@ const ALLOWED_ATTRS: Record<string, string[]> = {
   div: ["style"],
   span: ["style"],
   p: ["style"],
+  img: ["src", "alt"],
 };
 
 /**
@@ -54,7 +56,7 @@ export function sanitizeHtml(html: string): string {
       const attrName = m[1].toLowerCase();
       const value = m[2] !== undefined ? m[2] : m[3];
       if (!allowed.includes(attrName)) continue;
-      if (attrName === "href" && /^\s*javascript:/i.test(value)) continue;
+      if ((attrName === "href" || attrName === "src") && /^\s*javascript:/i.test(value)) continue;
       safeAttrs += ` ${attrName}="${value.replace(/"/g, "&quot;")}"`;
     }
     return `<${tag}${safeAttrs}>`;
