@@ -188,6 +188,7 @@ export interface SiteSettings {
   footerExternalLinkLabel: string;
   footerExternalLinkUrl: string;
   footerPaymentText: string;
+  courseCategories: string; // una por línea
 }
 
 export interface BirthdayEmailLog {

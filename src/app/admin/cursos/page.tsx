@@ -29,6 +29,7 @@ export default function AdminCoursesPage() {
   const canAssignInstructors = user?.role === 'ADMIN' || user?.role === 'EDITOR';
   const [courses, setCourses] = useState<Course[]>([]);
   const [staffUsers, setStaffUsers] = useState<{ id: string; name: string; role: string }[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -149,6 +150,16 @@ export default function AdminCoursesPage() {
 
   useEffect(() => {
     fetchCourses();
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        const raw: string = data.settings?.courseCategories || '';
+        setCategoryOptions(raw.split('\n').map((c: string) => c.trim()).filter(Boolean));
+      })
+      .catch((err) => console.error(err));
   }, []);
 
   useEffect(() => {
@@ -706,13 +717,13 @@ export default function AdminCoursesPage() {
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white outline-none"
                   />
                   <datalist id="category-suggestions">
-                    <option value="Terapia Floral" />
-                    <option value="Encuadernación" />
-                    <option value="Reiki & Energía" />
-                    <option value="Runas Vikingas" />
-                    <option value="Papelería y Agendas" />
-                    <option value="Emprendimiento" />
+                    {categoryOptions.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
                   </datalist>
+                  <p className="text-[10px] text-slate-400">
+                    ¿Falta una categoría o querés corregir una? Editalas desde Ajustes del Sitio.
+                  </p>
                 </div>
               </div>
 

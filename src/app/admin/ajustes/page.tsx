@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Settings, CheckCircle2, FileText, Award, ShieldAlert, Sparkles } from 'lucide-react';
+import { Settings, CheckCircle2, FileText, Award, ShieldAlert, Sparkles, Tags } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 export default function AdminSettingsPage() {
@@ -132,6 +132,28 @@ export default function AdminSettingsPage() {
             onChange={(e) => handleChange('heroBadges', e.target.value)}
             placeholder="Clases en Video y Guías, Vademécums en PDF, Certificado Verificable, Abono con Mercado Pago"
             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Categorías de cursos */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h3 className="font-serif font-bold text-base text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Tags className="w-5 h-5 text-lua-600" />
+          Categorías de Cursos
+        </h3>
+        <p className="text-[11px] text-slate-400">
+          Estas son las categorías que aparecen como sugerencia al crear o editar un curso, y las que arman los
+          filtros de la home. Agregá una nueva escribiéndola en una línea aparte, o editá/borrá una existente.
+        </p>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-slate-700 block">Categorías (una por línea)</label>
+          <textarea
+            rows={6}
+            value={settings.courseCategories}
+            onChange={(e) => handleChange('courseCategories', e.target.value)}
+            placeholder={'Terapia Floral\nRunas Vikingas'}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono"
           />
         </div>
       </div>

@@ -636,6 +636,9 @@ export const db = {
       footerExternalLinkLabel: data.footer_external_link_label ?? 'Línea Objeto: luaazul.com.ar →',
       footerExternalLinkUrl: data.footer_external_link_url ?? 'https://www.luaazul.com.ar',
       footerPaymentText: data.footer_payment_text ?? 'Cobro seguro con Mercado Pago',
+      courseCategories:
+        data.course_categories ??
+        'Terapia Floral\nEncuadernación\nReiki & Energía\nRunas Vikingas\nPapelería y Agendas\nEmprendimiento',
     };
   },
   saveSiteSettings: async (settings: SiteSettings): Promise<SiteSettings> => {
@@ -659,6 +662,7 @@ export const db = {
         footer_external_link_label: settings.footerExternalLinkLabel,
         footer_external_link_url: settings.footerExternalLinkUrl,
         footer_payment_text: settings.footerPaymentText,
+        course_categories: settings.courseCategories,
       })
       .eq('id', true)
       .select()
@@ -682,6 +686,7 @@ export const db = {
       footerExternalLinkLabel: data.footer_external_link_label,
       footerExternalLinkUrl: data.footer_external_link_url,
       footerPaymentText: data.footer_payment_text,
+      courseCategories: data.course_categories,
     };
   },
 
