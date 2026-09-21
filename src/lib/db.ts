@@ -795,13 +795,16 @@ export const db = {
     id: string,
     updates: Partial<Pick<Coupon, 'code' | 'discountPercent' | 'courseId' | 'maxUses' | 'expiresAt' | 'active'>>
   ): Promise<Coupon | null> => {
+    // Usamos 'in' (no `!== undefined`) porque para maxUses/courseId/expiresAt
+    // el valor "quiero vaciar este campo" se representa como `undefined`, que
+    // es indistinguible de "no toques este campo" si solo miramos el valor.
     const row: Record<string, unknown> = {};
-    if (updates.code !== undefined) row.code = updates.code.toUpperCase();
-    if (updates.discountPercent !== undefined) row.discount_percent = updates.discountPercent;
-    if (updates.courseId !== undefined) row.course_id = updates.courseId || null;
-    if (updates.maxUses !== undefined) row.max_uses = updates.maxUses ?? null;
-    if (updates.expiresAt !== undefined) row.expires_at = updates.expiresAt || null;
-    if (updates.active !== undefined) row.active = updates.active;
+    if ('code' in updates) row.code = updates.code!.toUpperCase();
+    if ('discountPercent' in updates) row.discount_percent = updates.discountPercent;
+    if ('courseId' in updates) row.course_id = updates.courseId || null;
+    if ('maxUses' in updates) row.max_uses = updates.maxUses ?? null;
+    if ('expiresAt' in updates) row.expires_at = updates.expiresAt || null;
+    if ('active' in updates) row.active = updates.active;
     const { data, error } = await sb.from('coupons').update(row).eq('id', id).select().maybeSingle();
     if (error) throw error;
     return data ? rowToCoupon(data) : null;

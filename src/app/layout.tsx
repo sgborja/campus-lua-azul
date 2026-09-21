@@ -19,10 +19,18 @@ const cormorant = Cormorant_Garamond({
   variable: '--font-cormorant',
 });
 
+const SITE_TITLE = 'Seminarios Lua Azul | Formación con Raíz Botánica y Profundidad Simbólica';
+const SITE_DESCRIPTION =
+  'Cursos y seminarios de Flores de Bach, Reiki, Runas Vikingas y Flores de California. Formación pausada, seria y con calidez artesanal.';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://campus.luaazul.com.ar';
+
 export const metadata: Metadata = {
-  title: 'Seminarios Lua Azul | Formación con Raíz Botánica y Profundidad Simbólica',
-  description:
-    'Cursos y seminarios de Flores de Bach, Reiki, Runas Vikingas y Flores de California. Formación pausada, seria y con calidez artesanal.',
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: '%s | Campus Lua Azul',
+  },
+  description: SITE_DESCRIPTION,
   icons: {
     icon: [
       { url: '/favicon.ico' },
@@ -31,6 +39,19 @@ export const metadata: Metadata = {
     apple: [
       { url: '/apple-icon.png' },
     ],
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'es_AR',
+    url: BASE_URL,
+    siteName: 'Campus Lua Azul',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
 };
 
