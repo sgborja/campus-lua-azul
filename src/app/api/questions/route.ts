@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireSelfOrAdmin } from '@/lib/auth';
+import { getSessionUser, canManageCourse, requireSelfOrAdmin } from '@/lib/auth';
 import { sendOrSimulateEmail, renderNewQuestionEmailHtml } from '@/lib/email';
 
 export async function GET(req: NextRequest) {
   try {
     const lessonId = req.nextUrl.searchParams.get('lessonId');
-    if (!lessonId) {
-      return NextResponse.json({ error: 'Falta el parámetro lessonId' }, { status: 400 });
+    const courseId = req.nextUrl.searchParams.get('courseId');
+    if (!lessonId || !courseId) {
+      return NextResponse.json({ error: 'Faltan parámetros requeridos (lessonId, courseId)' }, { status: 400 });
     }
+
+    const requester = await getSessionUser(req);
+    if (!requester) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+    const course = await db.getCourseById(courseId);
+    if (!course) {
+      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+    }
+    const isStaff = requester.role !== 'STUDENT' && canManageCourse(requester, course);
+    const isEnrolled = isStaff || (await db.isEnrolled(requester.id, courseId));
+    if (!isEnrolled) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
     const questions = await db.getQuestionsForLesson(lessonId);
     return NextResponse.json({ questions });
   } catch (error) {
@@ -33,6 +49,10 @@ export async function POST(req: NextRequest) {
     const course = await db.getCourseById(courseId);
     if (!course) {
       return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 });
+    }
+    const isStaff = student.role !== 'STUDENT' && canManageCourse(student, course);
+    if (!isStaff && !(await db.isEnrolled(student.id, courseId))) {
+      return NextResponse.json({ error: 'No estás inscripta/o en este curso' }, { status: 403 });
     }
     const lesson = course.modules.flatMap((m) => m.lessons).find((l) => l.id === lessonId);
     if (!lesson) {

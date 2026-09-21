@@ -130,9 +130,9 @@ function CourseClassroomContent() {
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
 
   useEffect(() => {
-    if (!activeLesson) return;
+    if (!activeLesson || !course) return;
     setQuestionsLoading(true);
-    fetch(`/api/questions?lessonId=${activeLesson.id}`)
+    fetch(`/api/questions?lessonId=${activeLesson.id}&courseId=${course.id}`)
       .then((res) => res.json())
       .then((data) => setQuestions(data.questions || []))
       .catch((err) => console.error(err))
