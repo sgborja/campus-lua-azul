@@ -15,7 +15,11 @@ export interface CouponCheckResult {
  * crear la preferencia de pago — nunca hay que confiar en un descuento que
  * calculó el navegador.
  */
-export async function validateCouponForCourse(code: string, course: Course): Promise<CouponCheckResult> {
+export async function validateCouponForCourse(
+  code: string,
+  course: Course,
+  userId?: string
+): Promise<CouponCheckResult> {
   const coupon = await db.getCouponByCode(code.trim());
 
   if (!coupon) return { valid: false, error: 'El cupón no existe.' };
@@ -28,6 +32,10 @@ export async function validateCouponForCourse(code: string, course: Course): Pro
   }
   if (coupon.maxUses !== undefined && coupon.usedCount >= coupon.maxUses) {
     return { valid: false, error: 'El cupón alcanzó su límite de usos.' };
+  }
+  // Cada cupón se puede usar una sola vez por alumno/a, sin importar el curso.
+  if (userId && (await db.hasUserRedeemedCoupon(coupon.id, userId))) {
+    return { valid: false, error: 'Ya usaste este cupón anteriormente.' };
   }
 
   const finalPrice = Math.max(0, Math.round(course.price * (1 - coupon.discountPercent / 100)));

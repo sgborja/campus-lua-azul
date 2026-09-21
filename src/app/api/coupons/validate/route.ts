@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, courseId } = await req.json();
+    const { code, courseId, userId } = await req.json();
     if (!code || !courseId) {
       return NextResponse.json({ valid: false, error: 'Falta el código o el curso' }, { status: 400 });
     }
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ valid: false, error: 'Curso no encontrado' }, { status: 404 });
     }
 
-    const result = await validateCouponForCourse(code, course);
+    const result = await validateCouponForCourse(code, course, userId || undefined);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error validando cupón:', error);

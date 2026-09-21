@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     if (pendingOrder?.couponCode) {
       const coupon = await db.getCouponByCode(pendingOrder.couponCode);
-      if (coupon) await db.incrementCouponUsage(coupon.id);
+      if (coupon) await db.recordCouponRedemption(coupon.id, pendingOrder.userId, pendingOrder.courseId);
     }
 
     // Send welcome email

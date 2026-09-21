@@ -819,6 +819,28 @@ export const db = {
     const { error } = await sb.from('coupons').delete().eq('id', id);
     if (error) throw error;
   },
+  hasUserRedeemedCoupon: async (couponId: string, userId: string): Promise<boolean> => {
+    const { data, error } = await sb
+      .from('coupon_redemptions')
+      .select('coupon_id')
+      .eq('coupon_id', couponId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    return !!data;
+  },
+  // Registra que este usuario ya usó este cupón (una sola vez por usuario,
+  // sin importar el curso) y suma el uso al contador general del cupón.
+  recordCouponRedemption: async (couponId: string, userId: string, courseId: string): Promise<void> => {
+    const { error: insertError } = await sb
+      .from('coupon_redemptions')
+      .insert({ coupon_id: couponId, user_id: userId, course_id: courseId });
+    if (insertError) {
+      if (insertError.code === '23505') return; // ya estaba registrado (carrera de requests), no duplicar el conteo
+      throw insertError;
+    }
+    await db.incrementCouponUsage(couponId);
+  },
 
   // QUESTIONS (consultas de alumnos sobre una lección)
   getQuestionsForLesson: async (lessonId: string): Promise<Question[]> => {

@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     let finalPrice = course.price;
     let validCouponCode: string | undefined;
     if (couponCode) {
-      const check = await validateCouponForCourse(couponCode, course);
+      const check = await validateCouponForCourse(couponCode, course, user.id);
       if (!check.valid) {
         return NextResponse.json({ error: check.error || 'Cupón inválido' }, { status: 400 });
       }
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       await db.enroll(user.id, course.id);
       if (validCouponCode) {
         const coupon = await db.getCouponByCode(validCouponCode);
-        if (coupon) await db.incrementCouponUsage(coupon.id);
+        if (coupon) await db.recordCouponRedemption(coupon.id, user.id, course.id);
       }
       return NextResponse.json({
         isFree: true,

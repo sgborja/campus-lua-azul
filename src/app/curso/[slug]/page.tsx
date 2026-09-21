@@ -61,7 +61,7 @@ export default function CourseDetailPage() {
       const res = await fetch('/api/coupons/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: couponInput.trim(), courseId: course.id }),
+        body: JSON.stringify({ code: couponInput.trim(), courseId: course.id, userId: user?.id }),
       });
       const data = await res.json();
       if (data.valid) {
