@@ -156,7 +156,7 @@ export default function AdminCoursesPage() {
     fetch('/api/admin/metrics')
       .then((res) => res.json())
       .then((data) => {
-        const staff = (data.allUsers || []).filter((u: any) => u.role === 'PROFESOR');
+        const staff = (data.allUsers || []).filter((u: any) => u.role === 'PROFESOR' || u.role === 'ADMIN' || u.role === 'EDITOR');
         setStaffUsers(staff);
       })
       .catch((err) => console.error(err));
@@ -745,6 +745,9 @@ export default function AdminCoursesPage() {
                               className="rounded"
                             />
                             {s.name}
+                            <span className="text-slate-400">
+                              ({s.role === 'ADMIN' ? 'Admin' : s.role === 'EDITOR' ? 'Editor' : 'Profesor/a'})
+                            </span>
                           </label>
                         );
                       })}
