@@ -10,6 +10,7 @@ import {
   Power,
   ShieldAlert,
   X,
+  Pencil,
 } from 'lucide-react';
 
 export default function AdminCouponsPage() {
@@ -18,6 +19,7 @@ export default function AdminCouponsPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -46,6 +48,7 @@ export default function AdminCouponsPage() {
   }, []);
 
   const handleOpenCreate = () => {
+    setEditingId(null);
     setCode('');
     setDiscountPercent(20);
     setCourseId('');
@@ -54,19 +57,29 @@ export default function AdminCouponsPage() {
     setShowModal(true);
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleOpenEdit = (c: any) => {
+    setEditingId(c.id);
+    setCode(c.code);
+    setDiscountPercent(c.discountPercent);
+    setCourseId(c.courseId || '');
+    setMaxUses(c.maxUses ? String(c.maxUses) : '');
+    setExpiresAt(c.expiresAt ? c.expiresAt.slice(0, 10) : '');
+    setShowModal(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch('/api/admin/coupons', {
-        method: 'POST',
+      const res = await fetch(editingId ? `/api/admin/coupons/${editingId}` : '/api/admin/coupons', {
+        method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code,
           discountPercent: Number(discountPercent),
-          courseId: courseId || undefined,
-          maxUses: maxUses ? Number(maxUses) : undefined,
-          expiresAt: expiresAt || undefined,
+          courseId: courseId || null,
+          maxUses: maxUses ? Number(maxUses) : null,
+          expiresAt: expiresAt || null,
         }),
       });
       const data = await res.json();
@@ -74,7 +87,7 @@ export default function AdminCouponsPage() {
         setShowModal(false);
         fetchData();
       } else {
-        alert(data.error || 'Error al crear el cupón');
+        alert(data.error || `Error al ${editingId ? 'editar' : 'crear'} el cupón`);
       }
     } catch (e) {
       console.error(e);
@@ -194,6 +207,14 @@ export default function AdminCouponsPage() {
 
               <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                 <button
+                  onClick={() => handleOpenEdit(c)}
+                  disabled={busyId === c.id}
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-[11px] flex items-center gap-1 disabled:opacity-50"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Editar
+                </button>
+                <button
                   onClick={() => handleToggleActive(c.id, c.active)}
                   disabled={busyId === c.id}
                   className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold text-[11px] flex items-center gap-1 disabled:opacity-50"
@@ -219,13 +240,13 @@ export default function AdminCouponsPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl my-8">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="font-serif font-bold text-lg text-slate-900">Crear Cupón</h3>
+              <h3 className="font-serif font-bold text-lg text-slate-900">{editingId ? 'Editar Cupón' : 'Crear Cupón'}</h3>
               <button onClick={() => setShowModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreate} className="space-y-4 text-xs">
+            <form onSubmit={handleSave} className="space-y-4 text-xs">
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Código</label>
                 <input
@@ -294,7 +315,7 @@ export default function AdminCouponsPage() {
                   Cancelar
                 </button>
                 <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-xl bg-lua-600 hover:bg-lua-700 text-white font-bold shadow transition-all disabled:opacity-50">
-                  {saving ? 'Guardando...' : 'Crear Cupón'}
+                  {saving ? 'Guardando...' : editingId ? 'Guardar Cambios' : 'Crear Cupón'}
                 </button>
               </div>
             </form>

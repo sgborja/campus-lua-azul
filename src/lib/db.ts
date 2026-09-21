@@ -791,6 +791,21 @@ export const db = {
     if (error) throw error;
     return data ? rowToCoupon(data) : null;
   },
+  updateCoupon: async (
+    id: string,
+    updates: Partial<Pick<Coupon, 'code' | 'discountPercent' | 'courseId' | 'maxUses' | 'expiresAt' | 'active'>>
+  ): Promise<Coupon | null> => {
+    const row: Record<string, unknown> = {};
+    if (updates.code !== undefined) row.code = updates.code.toUpperCase();
+    if (updates.discountPercent !== undefined) row.discount_percent = updates.discountPercent;
+    if (updates.courseId !== undefined) row.course_id = updates.courseId || null;
+    if (updates.maxUses !== undefined) row.max_uses = updates.maxUses ?? null;
+    if (updates.expiresAt !== undefined) row.expires_at = updates.expiresAt || null;
+    if (updates.active !== undefined) row.active = updates.active;
+    const { data, error } = await sb.from('coupons').update(row).eq('id', id).select().maybeSingle();
+    if (error) throw error;
+    return data ? rowToCoupon(data) : null;
+  },
   incrementCouponUsage: async (id: string): Promise<void> => {
     const { data, error: findErr } = await sb.from('coupons').select('used_count').eq('id', id).single();
     if (findErr) throw findErr;
