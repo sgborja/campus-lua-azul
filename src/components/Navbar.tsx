@@ -24,7 +24,7 @@ const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Admin',
   PROFESOR: 'Profesor',
   EDITOR: 'Editor',
-  STUDENT: 'Alumna/o',
+  STUDENT: 'Alumno/a',
 };
 
 export default function Navbar() {
@@ -119,7 +119,7 @@ export default function Navbar() {
                     <span className={`text-[10px] font-bold uppercase tracking-wider ${
                       isStaff ? 'text-dorado' : 'text-verde'
                     }`}>
-                      {ROLE_LABELS[role] || 'Alumna/o'}
+                      {ROLE_LABELS[role] || 'Alumno/a'}
                     </span>
                   </div>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -154,7 +154,7 @@ export default function Navbar() {
                         className="flex items-center gap-2 px-4 py-2 text-xs text-slate-700 hover:bg-slate-50"
                       >
                         <GraduationCap className="w-3.5 h-3.5 text-slate-500" />
-                        Mi Área de Alumno
+                        Mi Área de Alumno/a
                       </Link>
                       <Link
                         href="/campus/certificados"
@@ -257,7 +257,7 @@ export default function Navbar() {
 
           {user ? (
             <div className="pt-4 border-t border-slate-200 space-y-2">
-              <div className="text-xs font-semibold text-slate-500">Sesión: {user.name} ({ROLE_LABELS[role] || 'Alumna/o'})</div>
+              <div className="text-xs font-semibold text-slate-500">Sesión: {user.name} ({ROLE_LABELS[role] || 'Alumno/a'})</div>
               <Link
                 href="/cuenta"
                 onClick={() => setMobileMenuOpen(false)}
@@ -292,7 +292,7 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50"
               >
-                Crear Cuenta de Alumna
+                Crear Cuenta de Alumno/a
               </Link>
             </div>
           )}

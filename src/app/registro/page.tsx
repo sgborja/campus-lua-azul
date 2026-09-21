@@ -51,7 +51,7 @@ export default function RegisterPage() {
             <Sparkles className="w-6 h-6" />
           </div>
           <h1 className="font-serif font-bold text-2xl text-slate-900">
-            Crear Cuenta de Alumno
+            Crear Cuenta de Alumno/a
           </h1>
           <p className="text-xs text-slate-500">
             Únete a la comunidad de aprendizaje de Lua Azul

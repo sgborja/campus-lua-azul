@@ -68,7 +68,7 @@ export default function CampusDashboardPage() {
           </div>
 
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold tracking-tight text-white">
-            ¡Hola, {user?.name || 'Alumna/o'}! ✨
+            ¡Hola, {user?.name || 'Alumno/a'}! ✨
           </h1>
 
           <p className="text-sm text-slate-300 leading-relaxed">

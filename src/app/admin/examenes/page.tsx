@@ -597,7 +597,7 @@ export default function AdminExamsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold text-slate-700 block">Instrucción para el Alumno</label>
+                <label className="font-semibold text-slate-700 block">Instrucción para el Alumno/a</label>
                 <RichTextEditor
                   value={examDescription}
                   onChange={setExamDescription}
@@ -688,7 +688,7 @@ export default function AdminExamsPage() {
                       {/* Pedagogical Explanation */}
                       <div className="pt-1">
                         <label className="text-[10px] font-semibold text-slate-500 block mb-1">
-                          Explicación Pedagógica (visible para el alumno tras enviar el examen):
+                          Explicación Pedagógica (visible para el alumno/a tras enviar el examen):
                         </label>
                         <RichTextEditor
                           value={q.explanation}

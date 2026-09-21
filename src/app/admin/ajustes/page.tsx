@@ -258,7 +258,7 @@ export default function AdminSettingsPage() {
           Plantilla de Certificados
         </h3>
         <p className="text-[11px] text-slate-400">
-          El nombre de la alumna y el curso se completan automáticamente. Acá solo editás el texto fijo del diploma.
+          El nombre del alumno/a y el curso se completan automáticamente. Acá solo editás el texto fijo del diploma.
         </p>
 
         <div className="space-y-1">

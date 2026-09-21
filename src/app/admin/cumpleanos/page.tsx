@@ -220,7 +220,7 @@ export default function AdminBirthdaysPage() {
 
             <div className="space-y-1">
               <label className="text-slate-500 block font-semibold">
-                Mensaje (usá [NOMBRE] para el nombre de la alumna)
+                Mensaje (usá [NOMBRE] para el nombre del alumno/a)
               </label>
               <RichTextEditor value={editMessage} onChange={setEditMessage} compact />
             </div>
@@ -258,7 +258,7 @@ export default function AdminBirthdaysPage() {
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono font-bold"
               />
               <p className="text-[10px] text-slate-400">
-                Se le agrega automáticamente el nombre de cada alumna, ej. {editPromoCode || 'CUMPLE'}-VALERIA
+                Se le agrega automáticamente el nombre de cada alumno/a, ej. {editPromoCode || 'CUMPLE'}-VALERIA
               </p>
             </div>
 

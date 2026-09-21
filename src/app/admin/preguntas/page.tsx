@@ -61,7 +61,7 @@ export default function AdminQuestionsPage() {
         </span>
         <h2 className="text-xl font-serif font-bold text-slate-900 mt-0.5">Preguntas de tus cursos</h2>
         <p className="text-xs text-slate-500">
-          Respondé acá las preguntas que dejaron en las lecciones; a la alumna le llega un aviso por mail.
+          Respondé acá las preguntas que dejaron en las lecciones; al alumno/a le llega un aviso por mail.
         </p>
       </div>
 

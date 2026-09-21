@@ -170,7 +170,7 @@ export default function AdminOverviewPage() {
                 ¡Cumpleaños Próximos!
               </span>
               <h3 className="font-bold text-sm text-slate-900 mt-1">
-                {data.upcomingBirthdays.length} alumno(s) cumplen años este mes
+                {data.upcomingBirthdays.length} alumno/a(s) cumplen años este mes
               </h3>
               <p className="text-xs text-slate-600 mt-0.5">
                 Entre ellos: <strong>{data.upcomingBirthdays[0].user.name}</strong> ({data.upcomingBirthdays[0].isToday ? '¡Hoy es su cumpleaños!' : `el ${data.upcomingBirthdays[0].birthdayFormatted}`}).

@@ -143,7 +143,7 @@ export function renderNewQuestionEmailHtml({
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Nueva pregunta de una alumna</title>
+  <title>Nueva pregunta de un alumno/a</title>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f5fe; margin: 0; padding: 20px; color: #1e293b; }
     .card { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 32px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
@@ -157,7 +157,7 @@ export function renderNewQuestionEmailHtml({
     <p>Hola <strong>${professorName}</strong>,</p>
     <p><strong>${studentName}</strong> dejó una pregunta en la lección <strong>"${lessonTitle}"</strong> del curso <strong>${courseTitle}</strong>:</p>
     <div class="question-box">"${escapeHtml(questionText)}"</div>
-    <p>Entrá al campus para responderla; la alumna recibirá un aviso por mail apenas la contestes.</p>
+    <p>Entrá al campus para responderla; el alumno/a recibirá un aviso por mail apenas la contestes.</p>
     <a href="${adminUrl}" class="btn">Responder la pregunta</a>
   </div>
 </body>

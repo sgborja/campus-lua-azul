@@ -626,7 +626,7 @@ export default function AdminCoursesPage() {
                     <Link
                       href={`/campus/curso/${course.slug}`}
                       className="p-1.5 text-slate-500 hover:text-lua-600 rounded-lg hover:bg-white transition-colors"
-                      title="Abrir aula virtual del alumno"
+                      title="Abrir aula virtual del alumno/a"
                       target="_blank"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -933,7 +933,7 @@ export default function AdminCoursesPage() {
                       <span>{uploadingPpt ? 'Subiendo...' : '📁 Subir archivo .ppt o .pptx'}</span>
                     </label>
                     <p className="text-[10px] text-slate-400">
-                      Se muestra dentro del Aula Virtual con el visor de Office, sin que la alumna tenga que abrir PowerPoint.
+                      Se muestra dentro del Aula Virtual con el visor de Office, sin que el alumno/a tenga que abrir PowerPoint.
                     </p>
                   </div>
                 ) : (

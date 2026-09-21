@@ -72,7 +72,7 @@ export default function CertificateVerificationPage() {
             <div className="flex items-start gap-3">
               <User className="w-4 h-4 text-lua-600 mt-0.5" />
               <div>
-                <span className="text-slate-400 block text-[11px]">Alumno Certificado</span>
+                <span className="text-slate-400 block text-[11px]">Alumno/a Certificado/a</span>
                 <strong className="text-sm font-bold text-slate-900">{cert.userName}</strong>
               </div>
             </div>

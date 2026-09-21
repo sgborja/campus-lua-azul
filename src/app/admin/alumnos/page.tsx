@@ -93,7 +93,7 @@ export default function AdminUsersAndPermissionsPage() {
     ADMIN: { label: 'Administrador', bg: 'bg-amber-100 border-amber-300', text: 'text-amber-900' },
     PROFESOR: { label: 'Profesor / Instructor', bg: 'bg-emerald-100 border-emerald-300', text: 'text-emerald-900' },
     EDITOR: { label: 'Editor de Contenidos', bg: 'bg-blue-100 border-blue-300', text: 'text-blue-900' },
-    STUDENT: { label: 'Alumno', bg: 'bg-slate-100 border-slate-300', text: 'text-slate-800' },
+    STUDENT: { label: 'Alumno/a', bg: 'bg-slate-100 border-slate-300', text: 'text-slate-800' },
   };
 
   return (
@@ -195,7 +195,7 @@ export default function AdminUsersAndPermissionsPage() {
                           <option value="ADMIN">👑 Administrador (Total)</option>
                           <option value="PROFESOR">🌿 Profesor / Instructor</option>
                           <option value="EDITOR">✏️ Editor de Contenidos</option>
-                          <option value="STUDENT">🎓 Alumno</option>
+                          <option value="STUDENT">🎓 Alumno/a</option>
                         </select>
                       </>
                     ) : (
@@ -338,7 +338,7 @@ export default function AdminUsersAndPermissionsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold text-slate-700 block">Mensaje / Nota para el Alumno</label>
+                <label className="font-semibold text-slate-700 block">Mensaje / Nota para el Alumno/a</label>
                 <textarea
                   rows={3}
                   value={dispatchNote}

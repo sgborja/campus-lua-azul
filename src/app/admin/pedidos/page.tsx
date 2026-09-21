@@ -70,7 +70,7 @@ export default function AdminOrdersPage() {
                 <tr>
                   <th className="p-4">ID Orden</th>
                   <th className="p-4">Curso</th>
-                  <th className="p-4">Alumno / Email</th>
+                  <th className="p-4">Alumno/a / Email</th>
                   <th className="p-4">Importe</th>
                   <th className="p-4">Estado</th>
                   <th className="p-4">Fecha</th>
