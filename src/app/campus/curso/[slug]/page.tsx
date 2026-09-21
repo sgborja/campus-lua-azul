@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { Course, Lesson, Resource, LessonProgress } from '@/lib/types';
+import { Course, Lesson, Resource, LessonProgress, Question as QuestionType } from '@/lib/types';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import confetti from 'canvas-confetti';
 import {
@@ -28,6 +28,8 @@ import {
   Presentation,
   Copy,
   Check,
+  Send,
+  User,
 } from 'lucide-react';
 
 // Rango Unicode del bloque Runic (usado por ejemplo en el curso de Runas Vikingas)
@@ -48,7 +50,11 @@ function CourseClassroomContent() {
   const [progressList, setProgressList] = useState<LessonProgress[]>([]);
   const [glyphCopied, setGlyphCopied] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'content' | 'resources' | 'quiz'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'resources' | 'quiz' | 'questions'>('content');
+  const [questions, setQuestions] = useState<QuestionType[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+  const [newQuestionText, setNewQuestionText] = useState('');
+  const [submittingQuestion, setSubmittingQuestion] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [certificateUnlocked, setCertificateUnlocked] = useState(false);
@@ -71,11 +77,17 @@ function CourseClassroomContent() {
           const allLessons: Lesson[] = [];
           data.course.modules.forEach((m: any) => allLessons.push(...m.lessons));
 
+          const requestedLessonId = searchParams.get('leccion');
+          const requestedLesson = requestedLessonId && allLessons.find((l) => l.id === requestedLessonId);
+
           const firstUncompleted = allLessons.find(
             (l) => !data.progress?.some((p: any) => p.lessonId === l.id && p.completed)
           );
 
-          if (firstUncompleted) {
+          if (requestedLesson) {
+            setActiveLessonId(requestedLesson.id);
+            setActiveTab('questions');
+          } else if (firstUncompleted) {
             setActiveLessonId(firstUncompleted.id);
           } else if (allLessons.length > 0) {
             setActiveLessonId(allLessons[0].id);
@@ -116,6 +128,45 @@ function CourseClassroomContent() {
   const currentIndex = allLessons.findIndex((l) => l.id === activeLesson?.id);
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
+
+  useEffect(() => {
+    if (!activeLesson) return;
+    setQuestionsLoading(true);
+    fetch(`/api/questions?lessonId=${activeLesson.id}`)
+      .then((res) => res.json())
+      .then((data) => setQuestions(data.questions || []))
+      .catch((err) => console.error(err))
+      .finally(() => setQuestionsLoading(false));
+  }, [activeLesson]);
+
+  const handleSubmitQuestion = async () => {
+    if (!user || !course || !activeLesson || !newQuestionText.trim()) return;
+    setSubmittingQuestion(true);
+    try {
+      const res = await fetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: user.id,
+          courseId: course.id,
+          lessonId: activeLesson.id,
+          questionText: newQuestionText.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.question) {
+        setQuestions((prev) => [data.question, ...prev]);
+        setNewQuestionText('');
+      } else {
+        alert(data.error || 'Error al enviar la pregunta');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error de conexión');
+    } finally {
+      setSubmittingQuestion(false);
+    }
+  };
 
   const isCompleted = (lessonId: string) => {
     return progressList.some((p) => p.lessonId === lessonId && p.completed);
@@ -555,6 +606,19 @@ function CourseClassroomContent() {
                     Examen Final
                   </button>
                 )}
+
+                <button
+                  onClick={() => setActiveTab('questions')}
+                  className={`pb-3 border-b-2 transition-colors flex items-center gap-2 flex-shrink-0 whitespace-nowrap ${
+                    activeTab === 'questions'
+                      ? 'border-lua-500 text-white'
+                      : 'border-transparent text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline">Preguntas ({questions.length})</span>
+                  <span className="sm:hidden">Preguntas ({questions.length})</span>
+                </button>
               </div>
 
               {/* TAB CONTENT: Content & Notes */}
@@ -636,6 +700,69 @@ function CourseClassroomContent() {
                       Comenzar Examen Ahora
                       <ChevronRight className="w-4 h-4" />
                     </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB CONTENT: Questions & Answers */}
+              {activeTab === 'questions' && (
+                <div className="bg-slate-950 p-6 sm:p-8 rounded-2xl border border-slate-800 space-y-6">
+                  <div>
+                    <h3 className="font-serif font-bold text-base text-white">Preguntas sobre esta clase</h3>
+                    <p className="text-xs text-slate-400">
+                      Dejá tu consulta y le va a llegar un aviso a la profesora o al profesor a cargo. Cuando la
+                      respondan, te va a llegar un aviso por mail.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <textarea
+                      rows={3}
+                      value={newQuestionText}
+                      onChange={(e) => setNewQuestionText(e.target.value)}
+                      placeholder="Escribí tu pregunta sobre esta lección..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 placeholder:text-slate-500 outline-none focus:border-lua-500"
+                    />
+                    <button
+                      onClick={handleSubmitQuestion}
+                      disabled={submittingQuestion || !newQuestionText.trim()}
+                      className="px-4 py-2.5 rounded-xl bg-lua-600 hover:bg-lua-500 text-white text-xs font-bold flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      {submittingQuestion ? 'Enviando...' : 'Enviar Pregunta'}
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 pt-2 border-t border-slate-800">
+                    {questionsLoading ? (
+                      <p className="text-xs text-slate-500">Cargando preguntas...</p>
+                    ) : questions.length === 0 ? (
+                      <p className="text-xs text-slate-500">Todavía nadie preguntó nada sobre esta lección.</p>
+                    ) : (
+                      questions.map((q) => (
+                        <div key={q.id} className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-2">
+                          <div className="flex items-start gap-2 text-xs text-slate-200">
+                            <User className="w-3.5 h-3.5 text-lua-400 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <span className="font-semibold">{q.studentName}</span>
+                              <p className="text-slate-300 mt-0.5">{q.questionText}</p>
+                            </div>
+                          </div>
+                          {q.status === 'ANSWERED' ? (
+                            <div className="flex items-start gap-2 text-xs pl-1 ml-4 border-l-2 border-lua-500/50 pb-1">
+                              <div className="pl-3">
+                                <span className="font-semibold text-lua-300">
+                                  Respuesta de {q.answeredByName}:
+                                </span>
+                                <p className="text-slate-300 mt-0.5 whitespace-pre-line">{q.answerText}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-amber-400/80 pl-5">Todavía sin responder.</p>
+                          )}
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}

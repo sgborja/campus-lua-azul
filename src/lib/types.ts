@@ -170,6 +170,23 @@ export interface Testimonial {
   createdAt: string;
 }
 
+export interface Question {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  lessonId: string;
+  lessonTitle: string;
+  studentId: string;
+  studentName: string;
+  questionText: string;
+  answerText?: string;
+  answeredBy?: string;
+  answeredByName?: string;
+  status: 'PENDING' | 'ANSWERED';
+  createdAt: string;
+  answeredAt?: string;
+}
+
 export interface SiteSettings {
   footerDescription: string;
   footerTagline: string;

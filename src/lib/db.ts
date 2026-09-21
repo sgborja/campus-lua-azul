@@ -16,6 +16,7 @@ import {
   SiteSettings,
   Testimonial,
   Coupon,
+  Question,
 } from './types';
 
 const sb = createAdminClient();
@@ -218,6 +219,25 @@ function rowToTestimonial(row: any): Testimonial {
     rating: row.rating,
     status: row.status,
     createdAt: row.created_at,
+  };
+}
+
+function rowToQuestion(row: any): Question {
+  return {
+    id: row.id,
+    courseId: row.course_id,
+    courseTitle: row.course_title,
+    lessonId: row.lesson_id,
+    lessonTitle: row.lesson_title,
+    studentId: row.student_id,
+    studentName: row.student_name,
+    questionText: row.question_text,
+    answerText: row.answer_text ?? undefined,
+    answeredBy: row.answered_by ?? undefined,
+    answeredByName: row.answered_by_name ?? undefined,
+    status: row.status,
+    createdAt: row.created_at,
+    answeredAt: row.answered_at ?? undefined,
   };
 }
 
@@ -780,6 +800,77 @@ export const db = {
   deleteCoupon: async (id: string): Promise<void> => {
     const { error } = await sb.from('coupons').delete().eq('id', id);
     if (error) throw error;
+  },
+
+  // QUESTIONS (consultas de alumnos sobre una lección)
+  getQuestionsForLesson: async (lessonId: string): Promise<Question[]> => {
+    const { data, error } = await sb
+      .from('questions')
+      .select('*')
+      .eq('lesson_id', lessonId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(rowToQuestion);
+  },
+  getQuestionsForCourses: async (courseIds: string[]): Promise<Question[]> => {
+    if (courseIds.length === 0) return [];
+    const { data, error } = await sb
+      .from('questions')
+      .select('*')
+      .in('course_id', courseIds)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(rowToQuestion);
+  },
+  getAllQuestions: async (): Promise<Question[]> => {
+    const { data, error } = await sb.from('questions').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(rowToQuestion);
+  },
+  getQuestionById: async (id: string): Promise<Question | undefined> => {
+    const { data, error } = await sb.from('questions').select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    return data ? rowToQuestion(data) : undefined;
+  },
+  createQuestion: async (
+    q: Omit<Question, 'id' | 'status' | 'createdAt' | 'answerText' | 'answeredBy' | 'answeredByName' | 'answeredAt'>
+  ): Promise<Question> => {
+    const row = {
+      id: `q_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      course_id: q.courseId,
+      course_title: q.courseTitle,
+      lesson_id: q.lessonId,
+      lesson_title: q.lessonTitle,
+      student_id: q.studentId,
+      student_name: q.studentName,
+      question_text: q.questionText,
+      status: 'PENDING',
+      created_at: new Date().toISOString(),
+    };
+    const { data, error } = await sb.from('questions').insert(row).select().single();
+    if (error) throw error;
+    return rowToQuestion(data);
+  },
+  answerQuestion: async (
+    id: string,
+    answerText: string,
+    answeredBy: string,
+    answeredByName: string
+  ): Promise<Question | null> => {
+    const { data, error } = await sb
+      .from('questions')
+      .update({
+        answer_text: answerText,
+        answered_by: answeredBy,
+        answered_by_name: answeredByName,
+        status: 'ANSWERED',
+        answered_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToQuestion(data) : null;
   },
 };
 

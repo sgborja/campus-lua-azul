@@ -17,6 +17,7 @@ import {
   Settings,
   MessageSquareHeart,
   Ticket,
+  HelpCircle,
 } from 'lucide-react';
 
 const ADMIN_ROLES = ['ADMIN', 'PROFESOR', 'EDITOR'];
@@ -46,6 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Visión General', href: '/admin', icon: LayoutDashboard, superAdminOnly: false },
     { label: 'Gestor de Cursos', href: '/admin/cursos', icon: BookOpen, superAdminOnly: false },
     { label: 'Área de Exámenes', href: '/admin/examenes', icon: Award, superAdminOnly: false },
+    { label: 'Preguntas de Alumnas', href: '/admin/preguntas', icon: HelpCircle, superAdminOnly: false },
     { label: 'Alumnos y Progreso', href: '/admin/alumnos', icon: Users, superAdminOnly: false },
     { label: 'Mails de Cumpleaños', href: '/admin/cumpleanos', icon: Cake, superAdminOnly: true },
     { label: 'Testimonios', href: '/admin/testimonios', icon: MessageSquareHeart, superAdminOnly: false },

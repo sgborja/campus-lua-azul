@@ -115,6 +115,101 @@ export function renderWelcomeCourseEmailHtml({
   `.trim();
 }
 
+function escapeHtml(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+}
+
+export function renderNewQuestionEmailHtml({
+  professorName,
+  studentName,
+  courseTitle,
+  lessonTitle,
+  questionText,
+  adminUrl,
+}: {
+  professorName: string;
+  studentName: string;
+  courseTitle: string;
+  lessonTitle: string;
+  questionText: string;
+  adminUrl: string;
+}) {
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nueva pregunta de una alumna</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f5fe; margin: 0; padding: 20px; color: #1e293b; }
+    .card { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 32px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    .question-box { background: #eef4ff; border-left: 4px solid #2b5ee5; padding: 14px 18px; margin: 16px 0; border-radius: 4px; font-style: italic; }
+    .btn { display: inline-block; background: #203ba7; color: #fff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="color: #0d1838; margin-top: 0;">✋ Nueva pregunta en tu curso</h2>
+    <p>Hola <strong>${professorName}</strong>,</p>
+    <p><strong>${studentName}</strong> dejó una pregunta en la lección <strong>"${lessonTitle}"</strong> del curso <strong>${courseTitle}</strong>:</p>
+    <div class="question-box">"${escapeHtml(questionText)}"</div>
+    <p>Entrá al campus para responderla; la alumna recibirá un aviso por mail apenas la contestes.</p>
+    <a href="${adminUrl}" class="btn">Responder la pregunta</a>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+export function renderQuestionAnsweredEmailHtml({
+  studentName,
+  courseTitle,
+  lessonTitle,
+  questionText,
+  answerText,
+  lessonUrl,
+}: {
+  studentName: string;
+  courseTitle: string;
+  lessonTitle: string;
+  questionText: string;
+  answerText: string;
+  lessonUrl: string;
+}) {
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tu pregunta fue respondida</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f5fe; margin: 0; padding: 20px; color: #1e293b; }
+    .card { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 32px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    .question-box { background: #f8fafc; border-left: 4px solid #94a3b8; padding: 12px 18px; margin: 16px 0 8px; border-radius: 4px; font-style: italic; color: #475569; }
+    .answer-box { background: #eef4ff; border-left: 4px solid #2b5ee5; padding: 14px 18px; margin: 8px 0 16px; border-radius: 4px; }
+    .btn { display: inline-block; background: #203ba7; color: #fff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="color: #0d1838; margin-top: 0;">💬 Tu pregunta ya tiene respuesta</h2>
+    <p>Hola <strong>${studentName}</strong>,</p>
+    <p>Te respondieron la pregunta que dejaste en <strong>"${lessonTitle}"</strong> (${courseTitle}):</p>
+    <p style="margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8;">Tu pregunta</p>
+    <div class="question-box">"${escapeHtml(questionText)}"</div>
+    <p style="margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8;">Respuesta</p>
+    <div class="answer-box">${escapeHtml(answerText)}</div>
+    <a href="${lessonUrl}" class="btn">Ver en el Campus</a>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
 // Send or simulate sending email
 export async function sendOrSimulateEmail(payload: EmailPayload): Promise<{ success: boolean; simulated: boolean }> {
   // If RESEND_API_KEY is available, we can send via Resend API
